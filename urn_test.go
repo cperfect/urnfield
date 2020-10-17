@@ -269,5 +269,14 @@ func TestParseUrns(t *testing.T) {
 
 		fmt.Printf("%#v\n", u)
 	}
+}
 
+func TestFormatUrns(t *testing.T) {
+	for _, d := range testUrns {
+		fmt.Printf("Test Urn Data %v\n", d)
+		s := d.Urn.Format()
+		assert.Equal(t, d.urnString, s, "Format Test case %s (%v) result not equal", d.desc, d.urnString)
+
+		fmt.Printf("%#v\n", s)
+	}
 }
