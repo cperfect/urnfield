@@ -16,6 +16,8 @@ type urnTestData struct {
 
 //test data
 //see https://www.iana.org/assignments/urn-namespaces/urn-namespaces.xhtml
+//note that I am ordering the param strings to allow for testing
+//TODO find a better way to doing this
 var testUrns = []urnTestData{
 	urnTestData{
 		Urn{
@@ -140,7 +142,7 @@ var testUrns = []urnTestData{
 			},
 		},
 		"Good IETF Schema with resolvers component & no val param",
-		"urn:ietf:rfc:2648?+sparrow=african&niii",
+		"urn:ietf:rfc:2648?+niii&sparrow=african",
 		true,
 	},
 	urnTestData{
@@ -178,7 +180,7 @@ var testUrns = []urnTestData{
 			Fragment: "some/fragment()",
 		},
 		"Good IETF Schema with resolver and fragment components",
-		"urn:ietf:rfc:2648?+sparrow=african&niii#some/fragment()",
+		"urn:ietf:rfc:2648?+niii&sparrow=african#some/fragment()",
 		true,
 	},
 	urnTestData{
@@ -196,7 +198,7 @@ var testUrns = []urnTestData{
 			Fragment: "some/fragment()",
 		},
 		"Good IETF Schema with query, resolver and fragment components",
-		"urn:ietf:rfc:2648?=foo=bar&quux=wibble?+sparrow=african&niii#some/fragment()",
+		"urn:ietf:rfc:2648?=foo=bar&quux=wibble?+niii&sparrow=african#some/fragment()",
 		true,
 	},
 	urnTestData{
@@ -213,7 +215,7 @@ var testUrns = []urnTestData{
 			},
 		},
 		"Good IETF Schema with query and resolver components",
-		"urn:ietf:rfc:2648?=foo=bar&quux=wibble?+sparrow=african&niii",
+		"urn:ietf:rfc:2648?=foo=bar&quux=wibble?+niii&sparrow=african",
 		true,
 	},
 	urnTestData{
@@ -231,7 +233,7 @@ var testUrns = []urnTestData{
 			},
 		},
 		"Good IETF Schema with query and resolver components and slash",
-		"urn:ietf:rfc/2648?=foo=bar&quux=wibble?+sparrow=african&niii",
+		"urn:ietf:rfc/2648?=foo=bar&quux=wibble?+niii&sparrow=african",
 		true,
 	},
 	urnTestData{
@@ -249,7 +251,7 @@ var testUrns = []urnTestData{
 			Fragment: "some/*",
 		},
 		"Good IETF Schema with query, resolvers and globs",
-		"urn:ietf:rfc:2648?=foo=bar&quux=*?+sparrow=african&niii=*#some/*",
+		"urn:ietf:rfc:2648?=foo=bar&quux=*?+niii=*&sparrow=african#some/*",
 		true,
 	},
 }

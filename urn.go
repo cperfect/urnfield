@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 )
 
@@ -112,37 +113,62 @@ func (u Urn) Format() string {
 
 	if u.Query != nil && len(u.Query) > 0 {
 		sb.WriteString("?=")
-		var count = 0
-		for k, v := range u.Query {
-			if count > 0 {
-				sb.WriteString("&")
-			}
-			sb.WriteString(k)
-			if len(v) > 0 {
-				sb.WriteString("=")
-				sb.WriteString(v)
-			}
-			count++
-		}
+		writeMapToOrderedParamString(&sb, u.Query)
+
+		// var count = 0
+		// for k, v := range u.Query {
+		// 	if count > 0 {
+		// 		sb.WriteString("&")
+		// 	}
+		// 	sb.WriteString(k)
+		// 	if len(v) > 0 {
+		// 		sb.WriteString("=")
+		// 		sb.WriteString(v)
+		// 	}
+		// 	count++
+		// }
 	}
 	if u.Resolvers != nil && len(u.Resolvers) > 0 {
 		sb.WriteString("?+")
-		var count = 0
-		for k, v := range u.Resolvers {
-			if count > 0 {
-				sb.WriteString("&")
-			}
-			sb.WriteString(k)
-			if len(v) > 0 {
-				sb.WriteString("=")
-				sb.WriteString(v)
-			}
-			count++
-		}
+		writeMapToOrderedParamString(&sb, u.Resolvers)
+		// sb.WriteString("?+")
+		// var count = 0
+		// for k, v := range u.Resolvers {
+		// 	if count > 0 {
+		// 		sb.WriteString("&")
+		// 	}
+		// 	sb.WriteString(k)
+		// 	if len(v) > 0 {
+		// 		sb.WriteString("=")
+		// 		sb.WriteString(v)
+		// 	}
+		// 	count++
+		// }
 	}
 	if len(u.Fragment) > 0 {
 		sb.WriteString("#")
 		sb.WriteString(u.Fragment)
 	}
 	return sb.String()
+}
+
+//ordering the params is not part of the spec but makes testing easier!
+func writeMapToOrderedParamString(sb *strings.Builder, m map[string]string) {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	for count, k := range keys {
+		v, hasVal := m[k]
+		if count > 0 {
+			sb.WriteString("&")
+		}
+		sb.WriteString(k)
+		if hasVal && len(v) > 0 {
+			sb.WriteString("=")
+			sb.WriteString(v)
+		}
+	}
 }
