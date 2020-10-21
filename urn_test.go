@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type urnTestData struct {
@@ -18,6 +19,7 @@ type urnTestData struct {
 //see https://www.iana.org/assignments/urn-namespaces/urn-namespaces.xhtml
 //note that I am ordering the param strings to allow for testing
 //TODO find a better way to doing this
+//TODO failure tests!
 var testUrns = []urnTestData{
 	urnTestData{
 		Urn{
@@ -27,6 +29,15 @@ var testUrns = []urnTestData{
 		"Good ISBN schema",
 		"urn:isbn:0451450523",
 		true,
+	},
+	urnTestData{
+		Urn{
+			NID: "isbn",
+			NSS: []string{}, //empty!
+		},
+		"Bad ISBN schema - empt NSS",
+		"urn:isbn",
+		false,
 	},
 	urnTestData{
 		Urn{
@@ -123,9 +134,9 @@ var testUrns = []urnTestData{
 		Urn{
 			NID: "ietf",
 			NSS: []string{"rfc", "2648"},
-			Query: map[string]string{
-				"foo":  "bar",
-				"quux": "wibble",
+			Query: map[string][]string{
+				"foo":  []string{"bar"},
+				"quux": []string{"wibble"},
 			},
 		},
 		"Good IETF Schema with q-component",
@@ -136,9 +147,9 @@ var testUrns = []urnTestData{
 		Urn{
 			NID: "ietf",
 			NSS: []string{"rfc", "2648"},
-			Resolvers: map[string]string{
-				"sparrow": "african",
-				"niii":    "",
+			Resolvers: map[string][]string{
+				"sparrow": []string{"african"},
+				"niii":    []string{},
 			},
 		},
 		"Good IETF Schema with resolvers component & no val param",
@@ -159,9 +170,9 @@ var testUrns = []urnTestData{
 		Urn{
 			NID: "ietf",
 			NSS: []string{"rfc", "2648"},
-			Query: map[string]string{
-				"foo":  "bar",
-				"quux": "wibble",
+			Query: map[string][]string{
+				"foo":  []string{"bar"},
+				"quux": []string{"wibble"},
 			},
 			Fragment: "some/fragment()",
 		},
@@ -173,9 +184,9 @@ var testUrns = []urnTestData{
 		Urn{
 			NID: "ietf",
 			NSS: []string{"rfc", "2648"},
-			Resolvers: map[string]string{
-				"sparrow": "african",
-				"niii":    "",
+			Resolvers: map[string][]string{
+				"sparrow": []string{"african"},
+				"niii":    []string{},
 			},
 			Fragment: "some/fragment()",
 		},
@@ -187,13 +198,13 @@ var testUrns = []urnTestData{
 		Urn{
 			NID: "ietf",
 			NSS: []string{"rfc", "2648"},
-			Query: map[string]string{
-				"foo":  "bar",
-				"quux": "wibble",
+			Query: map[string][]string{
+				"foo":  []string{"bar"},
+				"quux": []string{"wibble"},
 			},
-			Resolvers: map[string]string{
-				"sparrow": "african",
-				"niii":    "",
+			Resolvers: map[string][]string{
+				"sparrow": []string{"african"},
+				"niii":    []string{},
 			},
 			Fragment: "some/fragment()",
 		},
@@ -205,13 +216,13 @@ var testUrns = []urnTestData{
 		Urn{
 			NID: "ietf",
 			NSS: []string{"rfc", "2648"},
-			Query: map[string]string{
-				"foo":  "bar",
-				"quux": "wibble",
+			Query: map[string][]string{
+				"foo":  []string{"bar"},
+				"quux": []string{"wibble"},
 			},
-			Resolvers: map[string]string{
-				"sparrow": "african",
-				"niii":    "",
+			Resolvers: map[string][]string{
+				"sparrow": []string{"african"},
+				"niii":    []string{},
 			},
 		},
 		"Good IETF Schema with query and resolver components",
@@ -223,13 +234,13 @@ var testUrns = []urnTestData{
 			NID:               "ietf",
 			NSS:               []string{"rfc", "2648"},
 			NSSSlashDelimiter: true,
-			Query: map[string]string{
-				"foo":  "bar",
-				"quux": "wibble",
+			Query: map[string][]string{
+				"foo":  []string{"bar"},
+				"quux": []string{"wibble"},
 			},
-			Resolvers: map[string]string{
-				"sparrow": "african",
-				"niii":    "",
+			Resolvers: map[string][]string{
+				"sparrow": []string{"african"},
+				"niii":    []string{},
 			},
 		},
 		"Good IETF Schema with query and resolver components and slash",
@@ -240,18 +251,36 @@ var testUrns = []urnTestData{
 		Urn{
 			NID: "ietf",
 			NSS: []string{"rfc", "2648"},
-			Query: map[string]string{
-				"foo":  "bar",
-				"quux": "*",
+			Query: map[string][]string{
+				"foo":  []string{"bar"},
+				"quux": []string{"*"},
 			},
-			Resolvers: map[string]string{
-				"sparrow": "african",
-				"niii":    "*",
+			Resolvers: map[string][]string{
+				"sparrow": []string{"african"},
+				"niii":    []string{"*"},
 			},
 			Fragment: "some/*",
 		},
 		"Good IETF Schema with query, resolvers and globs",
 		"urn:ietf:rfc:2648?=foo=bar&quux=*?+niii=*&sparrow=african#some/*",
+		true,
+	},
+	urnTestData{
+		Urn{
+			NID: "ietf",
+			NSS: []string{"rfc", "2648"},
+			Query: map[string][]string{
+				"foo":  []string{"bar", "zoing"},
+				"quux": []string{"*"},
+			},
+			Resolvers: map[string][]string{
+				"sparrow": []string{"european", "african"},
+				"niii":    []string{"*"},
+			},
+			Fragment: "some/*",
+		},
+		"Good IETF Schema with query, resolvers and globs",
+		"urn:ietf:rfc:2648?=foo=bar&foo=zoing&quux=*?+niii=*&sparrow=european&sparrow=african#some/*",
 		true,
 	},
 }
@@ -262,7 +291,7 @@ func TestParseUrns(t *testing.T) {
 		u, err := Parse(d.urnString)
 
 		if d.shouldSucceed {
-			assert.NoError(t, err, "Parse Test case %s (%s) should not have produced error %s", d.desc, d.urnString, err)
+			require.NoError(t, err, "Parse Test case %s (%s) should not have produced error %s", d.desc, d.urnString, err)
 
 			assert.Equal(t, d.Urn, u, "Parse Test case %s (%s) result not equal", d.desc, d.urnString)
 		} else {
@@ -276,8 +305,13 @@ func TestParseUrns(t *testing.T) {
 func TestFormatUrns(t *testing.T) {
 	for _, d := range testUrns {
 		fmt.Printf("Test Urn Data %v\n", d)
-		s := d.Urn.Format()
-		assert.Equal(t, d.urnString, s, "Format Test case %s (%v) result not equal", d.desc, d.urnString)
+		s, err := d.Urn.Format()
+		if d.shouldSucceed {
+			require.NoError(t, err, "Format should not have errored")
+			assert.Equal(t, d.urnString, s, "Format Test case %s (%v) result not equal", d.desc, d.urnString)
+		} else {
+			assert.Error(t, err, "Test Format case %s (%s) should have produced an error", d.desc, d.urnString)
+		}
 
 		fmt.Printf("%#v\n", s)
 	}

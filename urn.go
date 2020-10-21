@@ -9,10 +9,10 @@ import (
 )
 
 //PatternString for the regex to map and parse an URN
-const PatternString = `urn:(?P<NID>[-A-Za-z0-9]+):(?P<NSS>[\/:._\-;A-Za-z0-9]+)(?P<QUERY>\?=[=*&_\-\w]+)?(?P<RESOLVERS>\?\+[=*&_\-\w]+)?(?P<FRAGMENT>#[_*\-/\(\)\w]+)?`
+const Pattern = `urn:(?P<NID>[-A-Za-z0-9]+):(?P<NSS>[\/:._\-;A-Za-z0-9]+)(?P<QUERY>\?=[=*&_\-\w]+)?(?P<RESOLVERS>\?\+[=*&_\-\w]+)?(?P<FRAGMENT>#[_*\-/\(\)\w]+)?`
 
 //the compile regex
-var pattern = regexp.MustCompile(PatternString)
+var urnRegex = regexp.MustCompile(Pattern)
 
 //Urn represents a parsed URN
 //see https://tools.ietf.org/html/rfc8141
@@ -24,9 +24,9 @@ type Urn struct {
 	//NSS holds the Name Space Specific strings in order
 	NSS []string
 	//Query holds the Query component if one exists
-	Query map[string]string
+	Query map[string][]string
 	//Resolves holds the Resolvers component if one exists
-	Resolvers map[string]string
+	Resolvers map[string][]string
 	//Fragmeent holds the fragement componnent if one exsts
 	Fragment string
 }
@@ -34,11 +34,11 @@ type Urn struct {
 //Parse an urn from a string returning the parsed Urn struct or an error
 //If *any* separators are "/" then NSSSlashDelimiter will be true
 func Parse(urn string) (Urn, error) {
-	m := pattern.FindAllStringSubmatch(urn, -1)
+	m := urnRegex.FindAllStringSubmatch(urn, -1)
 	if m == nil {
 		return Urn{}, errors.New("urn did not match pattern")
 	} else if len(m) > 1 {
-		return Urn{}, errors.New("too many urns in match")
+		return Urn{}, errors.New("too many groups in match")
 	} else if len(m[0]) != 6 {
 		return Urn{}, fmt.Errorf("not enough groups (%d) in match", len(m[0]))
 	}
@@ -74,8 +74,8 @@ func Parse(urn string) (Urn, error) {
 }
 
 //utility method to break a q or r component string to a map
-func keyValuesToMap(kvStr string) map[string]string {
-	m := map[string]string{}
+func keyValuesToMap(kvStr string) map[string][]string {
+	m := map[string][]string{}
 	if kvStr == "" {
 		return m
 	}
@@ -83,23 +83,46 @@ func keyValuesToMap(kvStr string) map[string]string {
 	for _, kv := range kvs {
 		kva := strings.Split(kv, "=")
 		if len(kva) == 1 {
-			m[kva[0]] = ""
+			if m[kva[0]] == nil {
+				m[kva[0]] = []string{}
+			}
 		} else {
-			m[kva[0]] = kva[1]
+			m[kva[0]] = append(m[kva[0]], kva[1])
 		}
 	}
 	return m
 }
 
+//IsWellFormed checks for Well Formedness
+func (u *Urn) IsWellFormed() error {
+	//TODO better error handling
+	if u == nil {
+		return errors.New("Urn object is null")
+	}
+	if u.NID == "" {
+		return errors.New("NID is required")
+	}
+	if u.NSS == nil || len(u.NSS) == 0 {
+		return errors.New("NSS is required")
+	}
+	return nil
+}
+
 //ToString converts the Urn struct to a string
+//will throw an error if not well formed
 //this is a synonym of Format
-func (u Urn) ToString() string {
+func (u Urn) ToString() (string, error) {
 	return u.Format()
 }
 
 //Format a urn string from a Urn struct
+//will throw an error if not well formed
 //If NSSSlashDelimiter is true then all delimiters will be "/"
-func (u Urn) Format() string {
+func (u Urn) Format() (string, error) {
+	err := (&u).IsWellFormed()
+	if err != nil {
+		return "", err
+	}
 	sb := strings.Builder{}
 	sb.WriteString("urn:")
 	sb.WriteString(u.NID)
@@ -113,47 +136,21 @@ func (u Urn) Format() string {
 
 	if u.Query != nil && len(u.Query) > 0 {
 		sb.WriteString("?=")
-		writeMapToOrderedParamString(&sb, u.Query)
-
-		// var count = 0
-		// for k, v := range u.Query {
-		// 	if count > 0 {
-		// 		sb.WriteString("&")
-		// 	}
-		// 	sb.WriteString(k)
-		// 	if len(v) > 0 {
-		// 		sb.WriteString("=")
-		// 		sb.WriteString(v)
-		// 	}
-		// 	count++
-		// }
+		writeKeyValuesMap(&sb, u.Query)
 	}
 	if u.Resolvers != nil && len(u.Resolvers) > 0 {
 		sb.WriteString("?+")
-		writeMapToOrderedParamString(&sb, u.Resolvers)
-		// sb.WriteString("?+")
-		// var count = 0
-		// for k, v := range u.Resolvers {
-		// 	if count > 0 {
-		// 		sb.WriteString("&")
-		// 	}
-		// 	sb.WriteString(k)
-		// 	if len(v) > 0 {
-		// 		sb.WriteString("=")
-		// 		sb.WriteString(v)
-		// 	}
-		// 	count++
-		// }
+		writeKeyValuesMap(&sb, u.Resolvers)
 	}
 	if len(u.Fragment) > 0 {
 		sb.WriteString("#")
 		sb.WriteString(u.Fragment)
 	}
-	return sb.String()
+	return sb.String(), nil
 }
 
 //ordering the params is not part of the spec but makes testing easier!
-func writeMapToOrderedParamString(sb *strings.Builder, m map[string]string) {
+func writeKeyValuesMap(sb *strings.Builder, m map[string][]string) {
 	keys := make([]string, 0, len(m))
 	for k := range m {
 		keys = append(keys, k)
@@ -161,14 +158,23 @@ func writeMapToOrderedParamString(sb *strings.Builder, m map[string]string) {
 	sort.Strings(keys)
 
 	for count, k := range keys {
-		v, hasVal := m[k]
+		vs, hasVal := m[k]
 		if count > 0 {
 			sb.WriteString("&")
 		}
-		sb.WriteString(k)
-		if hasVal && len(v) > 0 {
-			sb.WriteString("=")
-			sb.WriteString(v)
+		if hasVal {
+			if len(vs) == 0 {
+				sb.WriteString(k)
+			} else if len(vs) > 0 {
+				for vcount, v := range vs {
+					if vcount > 0 {
+						sb.WriteString("&")
+					}
+					sb.WriteString(k)
+					sb.WriteString("=")
+					sb.WriteString(v)
+				}
+			}
 		}
 	}
 }
