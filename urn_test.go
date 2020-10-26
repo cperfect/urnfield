@@ -21,158 +21,158 @@ type urnTestData struct {
 //TODO find a better way to doing this
 //TODO failure tests!
 var testUrns = []urnTestData{
-	urnTestData{
+	{
 		Urn{
-			NID: "isbn",
-			NSS: []string{"0451450523"},
+			Nid: "isbn",
+			Nss: []string{"0451450523"},
 		},
 		"Good ISBN schema",
 		"urn:isbn:0451450523",
 		true,
 	},
-	urnTestData{
+	{
 		Urn{
-			NID: "isbn",
-			NSS: []string{}, //empty!
+			Nid: "isbn",
+			Nss: []string{}, //empty!
 		},
 		"Bad ISBN schema - empt NSS",
 		"urn:isbn",
 		false,
 	},
-	urnTestData{
+	{
 		Urn{
-			NID: "isan",
-			NSS: []string{"0000-0000-2CEA-0000-1-0000-0000-Y"},
+			Nid: "isan",
+			Nss: []string{"0000-0000-2CEA-0000-1-0000-0000-Y"},
 		},
 		"Good ISAN schema",
 		"urn:isan:0000-0000-2CEA-0000-1-0000-0000-Y",
 		true,
 	},
-	urnTestData{
+	{
 		Urn{
-			NID: "ISSN",
-			NSS: []string{"0167-6423"},
+			Nid: "ISSN",
+			Nss: []string{"0167-6423"},
 		},
 		"Good ISSN Schema",
 		"urn:ISSN:0167-6423",
 		true,
 	},
-	urnTestData{
+	{
 		Urn{
-			NID: "ietf",
-			NSS: []string{"rfc", "2648"},
+			Nid: "ietf",
+			Nss: []string{"rfc", "2648"},
 		},
 		"Good IETF Schema rfc",
 		"urn:ietf:rfc:2648",
 		true,
 	},
-	urnTestData{
+	{
 		Urn{
-			NID: "mpeg",
-			NSS: []string{"mpeg7", "schema", "2001"},
+			Nid: "mpeg",
+			Nss: []string{"mpeg7", "schema", "2001"},
 		},
 		"Good mpeg Schema",
 		"urn:mpeg:mpeg7:schema:2001",
 		true,
 	},
-	urnTestData{
+	{
 		Urn{
-			NID: "oid",
-			NSS: []string{"2.16.840"},
+			Nid: "oid",
+			Nss: []string{"2.16.840"},
 		},
 		"Good LDAP oid",
 		"urn:oid:2.16.840",
 		true,
 	},
-	urnTestData{
+	{
 		Urn{
-			NID: "uuid",
-			NSS: []string{"6e8bc430-9c3a-11d9-9669-0800200c9a66"},
+			Nid: "uuid",
+			Nss: []string{"6e8bc430-9c3a-11d9-9669-0800200c9a66"},
 		},
 		"Good uuid schema",
 		"urn:uuid:6e8bc430-9c3a-11d9-9669-0800200c9a66",
 		true,
 	},
-	urnTestData{
+	{
 		Urn{
-			NID: "nbn",
-			NSS: []string{"de", "bvb", "19-146642"},
+			Nid: "nbn",
+			Nss: []string{"de", "bvb", "19-146642"},
 		},
 		"Good nbn Schema",
 		"urn:nbn:de:bvb:19-146642",
 		true,
 	},
-	urnTestData{
+	{
 		Urn{
-			NID: "lex",
-			NSS: []string{"eu", "council", "directive", "2010-03-09;2010-19-UE"},
+			Nid: "lex",
+			Nss: []string{"eu", "council", "directive", "2010-03-09;2010-19-UE"},
 		},
 		"Good lex Schema",
 		"urn:lex:eu:council:directive:2010-03-09;2010-19-UE",
 		true,
 	},
-	urnTestData{
+	{
 		Urn{
-			NID: "lsid",
-			NSS: []string{"zoobank.org", "pub", "CDC8D258-8F57-41DC-B560-247E17D3DC8C"},
+			Nid: "lsid",
+			Nss: []string{"zoobank.org", "pub", "CDC8D258-8F57-41DC-B560-247E17D3DC8C"},
 		},
 		"Good lsid Schema",
 		"urn:lsid:zoobank.org:pub:CDC8D258-8F57-41DC-B560-247E17D3DC8C",
 		true,
 	},
-	urnTestData{
+	{
 		Urn{
-			NID:               "lex",
-			NSS:               []string{"eu", "council", "directive", "2010-03-09;2010-19-UE"},
-			NSSSlashDelimiter: true,
+			Nid:               "lex",
+			Nss:               []string{"eu", "council", "directive", "2010-03-09;2010-19-UE"},
+			NssSlashDelimiter: true,
 		},
 		"Good lex Schema with slash",
 		"urn:lex:eu/council/directive/2010-03-09;2010-19-UE",
 		true,
 	},
-	urnTestData{
+	{
 		Urn{
-			NID: "ietf",
-			NSS: []string{"rfc", "2648"},
+			Nid: "ietf",
+			Nss: []string{"rfc", "2648"},
 			Query: map[string][]string{
-				"foo":  []string{"bar"},
-				"quux": []string{"wibble"},
+				"foo":  {"bar"},
+				"quux": {"wibble"},
 			},
 		},
 		"Good IETF Schema with q-component",
 		"urn:ietf:rfc:2648?=foo=bar&quux=wibble",
 		true,
 	},
-	urnTestData{
+	{
 		Urn{
-			NID: "ietf",
-			NSS: []string{"rfc", "2648"},
+			Nid: "ietf",
+			Nss: []string{"rfc", "2648"},
 			Resolvers: map[string][]string{
-				"sparrow": []string{"african"},
-				"niii":    []string{},
+				"sparrow": {"african"},
+				"niii":    {},
 			},
 		},
 		"Good IETF Schema with resolvers component & no val param",
 		"urn:ietf:rfc:2648?+niii&sparrow=african",
 		true,
 	},
-	urnTestData{
+	{
 		Urn{
-			NID:      "ietf",
-			NSS:      []string{"rfc", "2648"},
+			Nid:      "ietf",
+			Nss:      []string{"rfc", "2648"},
 			Fragment: "some/fragment()",
 		},
 		"Good IETF Schema with fragment",
 		"urn:ietf:rfc:2648#some/fragment()",
 		true,
 	},
-	urnTestData{
+	{
 		Urn{
-			NID: "ietf",
-			NSS: []string{"rfc", "2648"},
+			Nid: "ietf",
+			Nss: []string{"rfc", "2648"},
 			Query: map[string][]string{
-				"foo":  []string{"bar"},
-				"quux": []string{"wibble"},
+				"foo":  {"bar"},
+				"quux": {"wibble"},
 			},
 			Fragment: "some/fragment()",
 		},
@@ -180,13 +180,13 @@ var testUrns = []urnTestData{
 		"urn:ietf:rfc:2648?=foo=bar&quux=wibble#some/fragment()",
 		true,
 	},
-	urnTestData{
+	{
 		Urn{
-			NID: "ietf",
-			NSS: []string{"rfc", "2648"},
+			Nid: "ietf",
+			Nss: []string{"rfc", "2648"},
 			Resolvers: map[string][]string{
-				"sparrow": []string{"african"},
-				"niii":    []string{},
+				"sparrow": {"african"},
+				"niii":    {},
 			},
 			Fragment: "some/fragment()",
 		},
@@ -194,17 +194,17 @@ var testUrns = []urnTestData{
 		"urn:ietf:rfc:2648?+niii&sparrow=african#some/fragment()",
 		true,
 	},
-	urnTestData{
+	{
 		Urn{
-			NID: "ietf",
-			NSS: []string{"rfc", "2648"},
+			Nid: "ietf",
+			Nss: []string{"rfc", "2648"},
 			Query: map[string][]string{
-				"foo":  []string{"bar"},
-				"quux": []string{"wibble"},
+				"foo":  {"bar"},
+				"quux": {"wibble"},
 			},
 			Resolvers: map[string][]string{
-				"sparrow": []string{"african"},
-				"niii":    []string{},
+				"sparrow": {"african"},
+				"niii":    {},
 			},
 			Fragment: "some/fragment()",
 		},
@@ -212,52 +212,52 @@ var testUrns = []urnTestData{
 		"urn:ietf:rfc:2648?=foo=bar&quux=wibble?+niii&sparrow=african#some/fragment()",
 		true,
 	},
-	urnTestData{
+	{
 		Urn{
-			NID: "ietf",
-			NSS: []string{"rfc", "2648"},
+			Nid: "ietf",
+			Nss: []string{"rfc", "2648"},
 			Query: map[string][]string{
-				"foo":  []string{"bar"},
-				"quux": []string{"wibble"},
+				"foo":  {"bar"},
+				"quux": {"wibble"},
 			},
 			Resolvers: map[string][]string{
-				"sparrow": []string{"african"},
-				"niii":    []string{},
+				"sparrow": {"african"},
+				"niii":    {},
 			},
 		},
 		"Good IETF Schema with query and resolver components",
 		"urn:ietf:rfc:2648?=foo=bar&quux=wibble?+niii&sparrow=african",
 		true,
 	},
-	urnTestData{
+	{
 		Urn{
-			NID:               "ietf",
-			NSS:               []string{"rfc", "2648"},
-			NSSSlashDelimiter: true,
+			Nid:               "ietf",
+			Nss:               []string{"rfc", "2648"},
+			NssSlashDelimiter: true,
 			Query: map[string][]string{
-				"foo":  []string{"bar"},
-				"quux": []string{"wibble"},
+				"foo":  {"bar"},
+				"quux": {"wibble"},
 			},
 			Resolvers: map[string][]string{
-				"sparrow": []string{"african"},
-				"niii":    []string{},
+				"sparrow": {"african"},
+				"niii":    {},
 			},
 		},
 		"Good IETF Schema with query and resolver components and slash",
 		"urn:ietf:rfc/2648?=foo=bar&quux=wibble?+niii&sparrow=african",
 		true,
 	},
-	urnTestData{
+	{
 		Urn{
-			NID: "ietf",
-			NSS: []string{"rfc", "2648"},
+			Nid: "ietf",
+			Nss: []string{"rfc", "2648"},
 			Query: map[string][]string{
-				"foo":  []string{"bar"},
-				"quux": []string{"*"},
+				"foo":  {"bar"},
+				"quux": {"*"},
 			},
 			Resolvers: map[string][]string{
-				"sparrow": []string{"african"},
-				"niii":    []string{"*"},
+				"sparrow": {"african"},
+				"niii":    {"*"},
 			},
 			Fragment: "some/*",
 		},
@@ -265,17 +265,17 @@ var testUrns = []urnTestData{
 		"urn:ietf:rfc:2648?=foo=bar&quux=*?+niii=*&sparrow=african#some/*",
 		true,
 	},
-	urnTestData{
+	{
 		Urn{
-			NID: "ietf",
-			NSS: []string{"rfc", "2648"},
+			Nid: "ietf",
+			Nss: []string{"rfc", "2648"},
 			Query: map[string][]string{
-				"foo":  []string{"bar", "zoing"},
-				"quux": []string{"*"},
+				"foo":  {"bar", "zoing"},
+				"quux": {"*"},
 			},
 			Resolvers: map[string][]string{
-				"sparrow": []string{"european", "african"},
-				"niii":    []string{"*"},
+				"sparrow": {"european", "african"},
+				"niii":    {"*"},
 			},
 			Fragment: "some/*",
 		},

@@ -17,12 +17,12 @@ var urnRegex = regexp.MustCompile(Pattern)
 //Urn represents a parsed URN
 //see https://tools.ietf.org/html/rfc8141
 type Urn struct {
-	//NID is the Namespace ID
-	NID string
-	//NSSSlashDelimiter indicates if this Urn uses / as delimiter in addition to :
-	NSSSlashDelimiter bool
-	//NSS holds the Name Space Specific strings in order
-	NSS []string
+	//Nid is the Namespace ID (Nid)
+	Nid string
+	//NssSlashDelimiter indicates if this Urn uses / as delimiter in addition to :
+	NssSlashDelimiter bool
+	//Nss holds the Name Space Specific (Nss) strings in order
+	Nss []string
 	//Query holds the Query component if one exists
 	Query map[string][]string
 	//Resolves holds the Resolvers component if one exists
@@ -48,17 +48,17 @@ func Parse(urn string) (Urn, error) {
 	}
 
 	u := Urn{
-		NID: mp[1],
+		Nid: mp[1],
 	}
 	if mp[2] == "" {
 		return Urn{}, errors.New("No NSS")
 	} else if strings.Contains(mp[2], ":") {
-		u.NSS = strings.Split(mp[2], ":")
+		u.Nss = strings.Split(mp[2], ":")
 	} else if strings.Contains(mp[2], "/") {
-		u.NSSSlashDelimiter = true
-		u.NSS = strings.Split(mp[2], "/")
+		u.NssSlashDelimiter = true
+		u.Nss = strings.Split(mp[2], "/")
 	} else {
-		u.NSS = []string{mp[2]}
+		u.Nss = []string{mp[2]}
 	}
 
 	if mp[3] != "" {
@@ -99,10 +99,10 @@ func (u *Urn) IsWellFormed() error {
 	if u == nil {
 		return errors.New("Urn object is null")
 	}
-	if u.NID == "" {
+	if u.Nid == "" {
 		return errors.New("NID is required")
 	}
-	if u.NSS == nil || len(u.NSS) == 0 {
+	if u.Nss == nil || len(u.Nss) == 0 {
 		return errors.New("NSS is required")
 	}
 	return nil
@@ -125,14 +125,14 @@ func (u Urn) Format() (string, error) {
 	}
 	sb := strings.Builder{}
 	sb.WriteString("urn:")
-	sb.WriteString(u.NID)
+	sb.WriteString(u.Nid)
 	sb.WriteString(":")
 
 	var nssDelim = ":"
-	if u.NSSSlashDelimiter {
+	if u.NssSlashDelimiter {
 		nssDelim = "/"
 	}
-	sb.WriteString(strings.Join(u.NSS, nssDelim))
+	sb.WriteString(strings.Join(u.Nss, nssDelim))
 
 	if u.Query != nil && len(u.Query) > 0 {
 		sb.WriteString("?=")
