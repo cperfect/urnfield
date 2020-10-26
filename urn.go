@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-//PatternString for the regex to map and parse an URN
+//Pattern for the regex to map and parse an URN
 const Pattern = `urn:(?P<NID>[-A-Za-z0-9]+):(?P<NSS>[\/:._\-;A-Za-z0-9]+)(?P<QUERY>\?=[=*&_\-\w]+)?(?P<RESOLVERS>\?\+[=*&_\-\w]+)?(?P<FRAGMENT>#[_*\-/\(\)\w]+)?`
 
 //the compile regex
