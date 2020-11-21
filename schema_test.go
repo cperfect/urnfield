@@ -17,28 +17,29 @@ var (
 		Description: "Test schema",
 		Nid:         "x-test",
 		NssSchema: &NssSchema{
-			Description:      "First element",
-			ElementValidator: RegexNssElementValidatorFunc(regexp.MustCompile(`\d{1,10}$`)),
-			Next: &NssSchema{
-				Description:      "Second element",
-				ElementValidator: RegexNssElementValidatorFunc(regexp.MustCompile(`\w{1,6}$`)),
-			},
+			Description: "First element",
+			ElementValidator: RegexNssElementValidatorFunc(regexp.MustCompile(`^\d{1,10}$`),
+				&NssSchema{
+					Description:      "Second element",
+					ElementValidator: RegexNssElementValidatorFunc(regexp.MustCompile(`^\w{1,6}$`), nil),
+				}),
 		},
-		// QComponentSchema: &MapSchema{
-		// 	KeyValueSchemas: {
-		// 		&KeyValuesSchema{
-		// 			Description: "",
-		// 			Key:         "foo",
-		// 			Pattern:     regexp.MustCompile("bar"),
-		// 		},
-		// 		&KeyValuesSchema{
-		// 			Description: "",
-		// 			Key:         "quux",
-		// 			Pattern:     regexp.MustCompile("wibble|ptuey"),
-		// 		},
-		// 	},
-		// },
-		//RComponentSchema: &MapSchema{},
+	}
+	xTestOrSchema = &Schema{
+		Description: "Test Or schema",
+		Nid:         "x-test-or",
+		NssSchema: &NssSchema{
+			Description: "First element",
+			ElementValidator: SimpleOrNssElementValidatorFunc(
+				map[string]*NssSchema{
+					"foo": &NssSchema{
+						Description:      "Second element",
+						ElementValidator: RegexNssElementValidatorFunc(regexp.MustCompile(`^\w{1,6}$`), nil),
+					},
+					"bar": nil,
+				},
+			),
+		},
 	}
 )
 
@@ -103,13 +104,73 @@ var testUrnSchemas = []testSchemaData{
 		},
 		xTestSchema,
 	},
+	{
+		urnTestData{
+			Urn{
+				Nid: "x-test-or",
+				Nss: []string{"bibble", "Addasd"},
+			},
+			"Bad x-test-or - bad first element",
+			"urn:x-test-or:bibble:Addasd",
+			false,
+		},
+		xTestOrSchema,
+	},
+	{
+		urnTestData{
+			Urn{
+				Nid: "x-test-or",
+				Nss: []string{"foo", "Addasd"},
+			},
+			"Good x-test-or - foo",
+			"urn:x-test-or:foo:Addasd",
+			true,
+		},
+		xTestOrSchema,
+	},
+	{
+		urnTestData{
+			Urn{
+				Nid: "x-test-or",
+				Nss: []string{"foo", "1234567"},
+			},
+			"Bad x-test-or - foo bad next element",
+			"urn:x-test-or:foo:1234567",
+			false,
+		},
+		xTestOrSchema,
+	},
+	{
+		urnTestData{
+			Urn{
+				Nid: "x-test-or",
+				Nss: []string{"bar"},
+			},
+			"Good x-test-or - bar",
+			"urn:x-test-or:bar",
+			true,
+		},
+		xTestOrSchema,
+	},
+	{
+		urnTestData{
+			Urn{
+				Nid: "x-test-or",
+				Nss: []string{"bar", "bad"},
+			},
+			"Bad x-test-or - bar - too many elements",
+			"urn:x-test-or:bar:bad",
+			false,
+		},
+		xTestOrSchema,
+	},
 }
 
 func TestSchemas(t *testing.T) {
 	for _, sd := range testUrnSchemas {
 		err := sd.Schema.Validate(sd.urnString)
 		if sd.shouldSucceed {
-			require.NoError(t, err, "Test Schemas %s (%s) should not have produced error %s", sd.desc, sd.urnString, err)
+			require.NoError(t, err, "Test Schemas %s (%s) should not have produced error: %s", sd.desc, sd.urnString, err)
 		} else {
 			require.Error(t, err, "Test Schemas %s (%s) should have produced an error", sd.desc, sd.urnString)
 		}
