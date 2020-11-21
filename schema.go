@@ -4,7 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+
+	"github.com/gobwas/glob"
 )
+
+//TODO - prevent use of nss delims in validator patterns
+//TODO - fix functor namings?
 
 //Schema defines a valid urn in a specific Namespace
 //Note that schema does not validate Q, R, F components
@@ -41,6 +46,17 @@ func (s *Schema) ValidateUrn(u Urn) error {
 //elements if more are expected else returns hasNext == false and a nil schema,
 //or returns fals, nil and a non-nil error is something has gone wrong
 type NssElementValidator func(nsse string) (hasNext bool, next *NssSchema, err error)
+
+//GlobNssElementValidatorFunc returns a NssElementValidator using glob matching https://github.com/gobwas/glob
+//this could be useful for matching groups or classes of resources
+func GlobNssElementValidatorFunc(glob glob.Glob, next *NssSchema) NssElementValidator {
+	return func(nsse string) (bool, *NssSchema, error) {
+		if !glob.Match(nsse) {
+			return false, nil, fmt.Errorf("Bad value for element: value %s should match glob pattern", nsse)
+		}
+		return next != nil, next, nil
+	}
+}
 
 //RegexNssElementValidatorFunc returns a NssElementValidator func based on the given regex pattern
 func RegexNssElementValidatorFunc(pattern *regexp.Regexp, next *NssSchema) NssElementValidator {

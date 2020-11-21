@@ -4,6 +4,7 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/gobwas/glob"
 	"github.com/stretchr/testify/require"
 )
 
@@ -25,6 +26,7 @@ var (
 				}),
 		},
 	}
+
 	xTestOrSchema = &Schema{
 		Description: "Test Or schema",
 		Nid:         "x-test-or",
@@ -39,6 +41,19 @@ var (
 					"bar": nil,
 				},
 			),
+		},
+	}
+
+	xTestGlobSchema = &Schema{
+		Description: "Test Or schema",
+		Nid:         "x-test-glob",
+		NssSchema: &NssSchema{
+			Description: "First element",
+			ElementValidator: EqualsNssElementValidatorFunc("zow",
+				&NssSchema{
+					Description:      "Second element",
+					ElementValidator: GlobNssElementValidatorFunc(glob.MustCompile("*.peowww"), nil),
+				}),
 		},
 	}
 )
@@ -163,6 +178,30 @@ var testUrnSchemas = []testSchemaData{
 			false,
 		},
 		xTestOrSchema,
+	},
+	{
+		urnTestData{
+			Urn{
+				Nid: "x-test-glob",
+				Nss: []string{"zow", "zpoe"},
+			},
+			"Bad x-test-glob - bad second element",
+			"urn:x-test-glob:zow:zpoe",
+			false,
+		},
+		xTestGlobSchema,
+	},
+	{
+		urnTestData{
+			Urn{
+				Nid: "x-test-glob",
+				Nss: []string{"zow", "zsadasdasd.peowww"},
+			},
+			"Good x-test-glob",
+			"urn:x-test-glob:zow:zsadasdasd.peowww",
+			true,
+		},
+		xTestGlobSchema,
 	},
 }
 
