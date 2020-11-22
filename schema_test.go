@@ -31,11 +31,11 @@ var (
 		Description: "Test Or schema",
 		Nid:         "x-test-or",
 		NssSchema: &NssSchema{
-			Description: "First element",
+			Description: "First element alternatives",
 			ElementValidator: SimpleOrNssElementValidatorFunc(
 				map[string]*NssSchema{
 					"foo": &NssSchema{
-						Description:      "Second element",
+						Description:      "foo Second element",
 						ElementValidator: RegexNssElementValidatorFunc(regexp.MustCompile(`^\w{1,6}$`), nil),
 					},
 					"bar": nil,
@@ -54,6 +54,27 @@ var (
 					Description:      "Second element",
 					ElementValidator: GlobNssElementValidatorFunc(glob.MustCompile("*.peowww"), nil),
 				}),
+		},
+	}
+
+	xTestComplexOrSchema = &Schema{
+		Description: "Test Complex Or schema",
+		Nid:         "x-test-or-complex",
+		NssSchema: &NssSchema{
+			Description: "First element alternatives",
+			ElementValidator: ComplexOrNssElementValidatorFunc(
+				[]*NssSchema{
+					{
+						Description: "Foo first element",
+						ElementValidator: EqualsNssElementValidatorFunc("foo", &NssSchema{
+							Description:      "Foo Second element",
+							ElementValidator: RegexNssElementValidatorFunc(regexp.MustCompile(`^\w{1,6}$`), nil),
+						})},
+					{
+						Description:      "Foo first element",
+						ElementValidator: EqualsNssElementValidatorFunc("bar", nil)},
+				},
+			),
 		},
 	}
 )
@@ -202,6 +223,67 @@ var testUrnSchemas = []testSchemaData{
 			true,
 		},
 		xTestGlobSchema,
+	},
+
+	{
+		urnTestData{
+			Urn{
+				Nid: "x-test-or-complex",
+				Nss: []string{"bibble", "Addasd"},
+			},
+			"Bad x-test-or-complex - bad first element",
+			"urn:x-test-or-complex:bibble:Addasd",
+			false,
+		},
+		xTestComplexOrSchema,
+	},
+	{
+		urnTestData{
+			Urn{
+				Nid: "x-test-or-complex",
+				Nss: []string{"foo", "Addasd"},
+			},
+			"Good x-test-or-complex - foo",
+			"urn:x-test-or-complex:foo:Addasd",
+			true,
+		},
+		xTestComplexOrSchema,
+	},
+	{
+		urnTestData{
+			Urn{
+				Nid: "x-test-or-complex",
+				Nss: []string{"foo", "1234567"},
+			},
+			"Bad x-test-or-complex - foo bad next element",
+			"urn:x-test-or-complex:foo:1234567",
+			false,
+		},
+		xTestComplexOrSchema,
+	},
+	{
+		urnTestData{
+			Urn{
+				Nid: "x-test-or-complex",
+				Nss: []string{"bar"},
+			},
+			"Good x-test-or-complex - bar",
+			"urn:x-test-or-complex:bar",
+			true,
+		},
+		xTestComplexOrSchema,
+	},
+	{
+		urnTestData{
+			Urn{
+				Nid: "x-test-or-complex",
+				Nss: []string{"bar", "bad"},
+			},
+			"Bad x-test-or-complex - bar - too many elements",
+			"urn:x-test-or-complex:bar:bad",
+			false,
+		},
+		xTestComplexOrSchema,
 	},
 }
 

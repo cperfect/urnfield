@@ -86,6 +86,18 @@ func SimpleOrNssElementValidatorFunc(alternatives map[string]*NssSchema) NssElem
 	}
 }
 
+func ComplexOrNssElementValidatorFunc(alternatives []*NssSchema) NssElementValidator {
+	return func(nsse string) (bool, *NssSchema, error) {
+		for _, schema := range alternatives {
+			hasNext, next, err := schema.ElementValidator(nsse)
+			if err == nil { //TODO counter intuitive - find a better way
+				return hasNext, next, err
+			}
+		}
+		return false, nil, fmt.Errorf("No matching alternative for nss element %s in %v", nsse, alternatives)
+	}
+}
+
 //NssSchema defines a valid Nss set for a specific scheme
 type NssSchema struct {
 	Description      string
