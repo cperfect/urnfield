@@ -8,7 +8,7 @@ import (
 	"github.com/gobwas/glob"
 )
 
-//TODO - prevent use of nss delims in validator patterns
+//TODO - prevent use of nss delims in validator patterns - maybe allow in glob only?
 //TODO - fix functor namings?
 
 //Schema defines a valid urn in a specific Namespace
@@ -52,7 +52,9 @@ type NssElementValidator func(nsse string) (hasNext bool, next *NssSchema, err e
 func GlobNssElementValidatorFunc(glob glob.Glob, next *NssSchema) NssElementValidator {
 	return func(nsse string) (bool, *NssSchema, error) {
 		if !glob.Match(nsse) {
+			//if next != nil {
 			return false, nil, fmt.Errorf("Bad value for element: value %s should match glob pattern", nsse)
+			//}
 		}
 		return next != nil, next, nil
 	}
@@ -68,6 +70,7 @@ func RegexNssElementValidatorFunc(pattern *regexp.Regexp, next *NssSchema) NssEl
 	}
 }
 
+//EqualsNssElementValidatorFunc matches nss exactly
 func EqualsNssElementValidatorFunc(nssEquals string, next *NssSchema) NssElementValidator {
 	return func(nsse string) (bool, *NssSchema, error) {
 		if nssEquals != nsse {
@@ -77,6 +80,7 @@ func EqualsNssElementValidatorFunc(nssEquals string, next *NssSchema) NssElement
 	}
 }
 
+//SimpleOrNssElementValidatorFunc matches a set of distinct alternatives via string equals
 func SimpleOrNssElementValidatorFunc(alternatives map[string]*NssSchema) NssElementValidator {
 	return func(nsse string) (bool, *NssSchema, error) {
 		if next, ok := alternatives[nsse]; ok {
@@ -86,6 +90,8 @@ func SimpleOrNssElementValidatorFunc(alternatives map[string]*NssSchema) NssElem
 	}
 }
 
+//ComplexOrNssElementValidatorFunc Matches a set of alternatives via
+//any other Validator fund
 func ComplexOrNssElementValidatorFunc(alternatives []*NssSchema) NssElementValidator {
 	return func(nsse string) (bool, *NssSchema, error) {
 		for _, schema := range alternatives {

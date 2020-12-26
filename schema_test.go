@@ -34,7 +34,7 @@ var (
 			Description: "First element alternatives",
 			ElementValidator: SimpleOrNssElementValidatorFunc(
 				map[string]*NssSchema{
-					"foo": &NssSchema{
+					"foo": {
 						Description:      "foo Second element",
 						ElementValidator: RegexNssElementValidatorFunc(regexp.MustCompile(`^\w{1,6}$`), nil),
 					},
@@ -52,7 +52,7 @@ var (
 			ElementValidator: EqualsNssElementValidatorFunc("zow",
 				&NssSchema{
 					Description:      "Second element",
-					ElementValidator: GlobNssElementValidatorFunc(glob.MustCompile("*.peowww"), nil),
+					ElementValidator: GlobNssElementValidatorFunc(glob.MustCompile("**.peowww", ':'), nil),
 				}),
 		},
 	}
@@ -220,6 +220,18 @@ var testUrnSchemas = []testSchemaData{
 			},
 			"Good x-test-glob",
 			"urn:x-test-glob:zow:zsadasdasd.peowww",
+			true,
+		},
+		xTestGlobSchema,
+	},
+	{
+		urnTestData{
+			Urn{
+				Nid: "x-test-glob",
+				Nss: []string{"zow", "zsadasdasd:dsaddas:asdadsads:asdsdds.peowww"},
+			},
+			"Good x-test-glob-multinns",
+			"urn:x-test-glob:zow:zsadasdasd:dsaddas:asdadsads:asdsdds.peowww",
 			true,
 		},
 		xTestGlobSchema,
