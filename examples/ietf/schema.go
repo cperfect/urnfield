@@ -92,7 +92,6 @@ var Schema = &urnfield.Schema{
 							`,
 							ElementValidator: urnfield.GlobNssElementValidatorFunc(
 								glob.MustCompile("*"),
-								nil,
 							),
 						},
 					),

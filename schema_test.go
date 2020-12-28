@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/gobwas/glob"
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 type testSchemaData struct {
@@ -52,7 +52,7 @@ var (
 			ElementValidator: EqualsNssElementValidatorFunc("zow",
 				&NssSchema{
 					Description:      "Second element",
-					ElementValidator: GlobNssElementValidatorFunc(glob.MustCompile("**.peowww", ':'), nil),
+					ElementValidator: GlobNssElementValidatorFunc(glob.MustCompile("**.peowww", ':')),
 				}),
 		},
 	}
@@ -303,9 +303,9 @@ func TestSchemas(t *testing.T) {
 	for _, sd := range testUrnSchemas {
 		err := sd.Schema.Validate(sd.urnString)
 		if sd.shouldSucceed {
-			require.NoError(t, err, "Test Schemas %s (%s) should not have produced error: %s", sd.desc, sd.urnString, err)
+			assert.NoError(t, err, "Test Schemas %s (%s) should not have produced error: %s", sd.desc, sd.urnString, err)
 		} else {
-			require.Error(t, err, "Test Schemas %s (%s) should have produced an error", sd.desc, sd.urnString)
+			assert.Error(t, err, "Test Schemas %s (%s) should have produced an error", sd.desc, sd.urnString)
 		}
 	}
 }
