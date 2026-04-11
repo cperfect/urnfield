@@ -124,9 +124,10 @@ func ComplexOrNssElementValidatorFunc(alternatives []*NssSchema) NssElementValid
 		}
 		for _, schema := range alternatives {
 			nss, next, err := schema.ElementValidator(nss)
-			if err == nil { //TODO counter intuitive - find a better way
-				return nss, next, err
+			if err != nil {
+				continue
 			}
+			return nss, next, nil
 		}
 		return nil, nil, fmt.Errorf("no matching alternative for nss element %s in %v", nss[0], alternatives)
 	}
