@@ -19,8 +19,9 @@ var stringNssSchema = &urnfield.NssSchema{
 	ElementValidator: urnfield.RegexNssElementValidatorFunc(regexp.MustCompile(`^[0-9a-zA-Z-]+$`), nil),
 }
 
-//Schema for https://tools.ietf.org/html/rfc2648 updated by https://tools.ietf.org/html/rfc3553
-//TODO update to https://tools.ietf.org/html/rfc6924
+// Schema is the urnfield schema for the IETF URN namespace as defined in
+// https://tools.ietf.org/html/rfc2648, updated by https://tools.ietf.org/html/rfc3553.
+// TODO: update to https://tools.ietf.org/html/rfc6924
 var Schema = &urnfield.Schema{
 	Description: "Schema for https://tools.ietf.org/html/rfc2648",
 	Nid:         "ietf",

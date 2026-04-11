@@ -12,15 +12,15 @@ import (
 //TODO - prevent use of nss delims in validator patterns - maybe allow in glob only?
 //TODO - fix functor namings?
 
-//Schema defines a valid urn in a specific Namespace
-//Note that schema does not validate Q, R, F components
+// Schema defines a valid URN in a specific namespace.
+// Note that Schema does not validate the query, resolvers, or fragment components.
 type Schema struct {
 	Description string
 	Nid         string
 	NssSchema   *NssSchema
 }
 
-//Validate checks the urn string against the schema
+// Validate parses urn and checks it against the schema.
 func (s *Schema) Validate(urn string) error {
 	u, err := Parse(urn)
 	if err != nil {
@@ -29,7 +29,7 @@ func (s *Schema) Validate(urn string) error {
 	return s.ValidateUrn(u)
 }
 
-//ValidateUrn validates a Urn object
+// ValidateUrn validates a parsed Urn against the schema.
 func (s *Schema) ValidateUrn(u Urn) error {
 	if s.Nid != u.Nid {
 		return fmt.Errorf("NID must be %s: got %s", s.Nid, u.Nid)
@@ -42,14 +42,15 @@ func (s *Schema) ValidateUrn(u Urn) error {
 	return nil
 }
 
-//NssElementValidator defines the type of funcs for validating NSS elements
-//returns hasNext == true and a non-nil pointer to the schema for the next
-//elements if more are expected else returns hasNext == false and a nil schema,
-//or returns fals, nil and a non-nil error is something has gone wrong
+// NssElementValidator is a function that validates one or more NSS elements.
+// It returns the remaining unprocessed elements and the NssSchema to use for
+// the next element, or a non-nil error if validation fails. When no further
+// elements are expected, next is nil and nssRemainder should be empty.
 type NssElementValidator func(nss []string) (nssRemainder []string, next *NssSchema, err error)
 
-//GlobNssElementValidatorFunc returns a NssElementValidator using glob matching https://github.com/gobwas/glob
-//this could be useful for matching groups or classes of resources
+// GlobNssElementValidatorFunc returns an NssElementValidator that matches the remaining NSS
+// elements (joined with ":") against the given glob pattern. Useful for matching groups or
+// classes of resources. See https://github.com/gobwas/glob for pattern syntax.
 func GlobNssElementValidatorFunc(glob glob.Glob) NssElementValidator {
 	return func(nss []string) ([]string, *NssSchema, error) {
 		if !glob.Match(strings.Join(nss, ":")) {
@@ -61,7 +62,8 @@ func GlobNssElementValidatorFunc(glob glob.Glob) NssElementValidator {
 	}
 }
 
-//RegexNssElementValidatorFunc returns a NssElementValidator func based on the given regex pattern
+// RegexNssElementValidatorFunc returns an NssElementValidator that matches the current NSS
+// element against the given compiled regex pattern.
 func RegexNssElementValidatorFunc(pattern *regexp.Regexp, next *NssSchema) NssElementValidator {
 	return func(nss []string) ([]string, *NssSchema, error) {
 		if !pattern.Match([]byte(nss[0])) {
@@ -71,7 +73,8 @@ func RegexNssElementValidatorFunc(pattern *regexp.Regexp, next *NssSchema) NssEl
 	}
 }
 
-//EqualsNssElementValidatorFunc matches nss exactly
+// EqualsNssElementValidatorFunc returns an NssElementValidator that requires the current
+// NSS element to equal nssEquals exactly.
 func EqualsNssElementValidatorFunc(nssEquals string, next *NssSchema) NssElementValidator {
 	return func(nss []string) ([]string, *NssSchema, error) {
 		if nssEquals != nss[0] {
@@ -81,7 +84,8 @@ func EqualsNssElementValidatorFunc(nssEquals string, next *NssSchema) NssElement
 	}
 }
 
-//SimpleOrNssElementValidatorFunc matches a set of distinct alternatives via string equals
+// SimpleOrNssElementValidatorFunc returns an NssElementValidator that matches the current NSS
+// element against a map of allowed string values, each mapping to the next NssSchema to use.
 func SimpleOrNssElementValidatorFunc(alternatives map[string]*NssSchema) NssElementValidator {
 	return func(nss []string) ([]string, *NssSchema, error) {
 		if next, ok := alternatives[nss[0]]; ok {
@@ -91,8 +95,8 @@ func SimpleOrNssElementValidatorFunc(alternatives map[string]*NssSchema) NssElem
 	}
 }
 
-//ComplexOrNssElementValidatorFunc Matches a set of alternatives via
-//any other Validator fund
+// ComplexOrNssElementValidatorFunc returns an NssElementValidator that tries each of the
+// provided NssSchemas in order, returning the result of the first one that succeeds.
 func ComplexOrNssElementValidatorFunc(alternatives []*NssSchema) NssElementValidator {
 	return func(nss []string) ([]string, *NssSchema, error) {
 		for _, schema := range alternatives {
@@ -105,13 +109,13 @@ func ComplexOrNssElementValidatorFunc(alternatives []*NssSchema) NssElementValid
 	}
 }
 
-//NssSchema defines a valid Nss set for a specific scheme
+// NssSchema defines the validation rules for a set of NSS elements.
 type NssSchema struct {
 	Description      string
 	ElementValidator NssElementValidator
 }
 
-//recursively validate the nss elements
+// recursively validate the nss elements
 func (ns *NssSchema) validate(nss []string) error {
 	if nss == nil {
 		return fmt.Errorf("No value for nss element %s)", ns.Description)

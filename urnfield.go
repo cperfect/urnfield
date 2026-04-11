@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-// Pattern for the regex to map and parse an URN
+// Pattern is the regex used to parse a URN string into its components.
 const Pattern = `urn:(?P<NID>[-A-Za-z0-9]+):(?P<NSS>[\/:._\-;A-Za-z0-9]+)(?P<QUERY>\?=[=*&_\-\w]+)?(?P<RESOLVERS>\?\+[=*&_\-\w]+)?(?P<FRAGMENT>#[_*\-/\(\)\w]+)?`
 
 // the compile regex
@@ -17,17 +17,17 @@ var urnRegex = regexp.MustCompile(Pattern)
 // Urn represents a parsed URN
 // see https://tools.ietf.org/html/rfc8141
 type Urn struct {
-	//Nid is the Namespace ID (Nid)
+	// Nid is the Namespace Identifier.
 	Nid string
-	//NssSlashDelimiter indicates if this Urn uses / as delimiter in addition to :
+	// NssSlashDelimiter indicates if this URN uses "/" as the NSS delimiter instead of ":".
 	NssSlashDelimiter bool
-	//Nss holds the Name Space Specific (Nss) strings in order
+	// Nss holds the Namespace-Specific String elements in order.
 	Nss []string
-	//Query holds the Query component if one exists
+	// Query holds the query component ("?=") if one exists.
 	Query map[string][]string
-	//Resolves holds the Resolvers component if one exists
+	// Resolvers holds the resolvers component ("?+") if one exists.
 	Resolvers map[string][]string
-	//Fragmeent holds the fragement componnent if one exsts
+	// Fragment holds the fragment component ("#") if one exists.
 	Fragment string
 }
 

@@ -15,11 +15,11 @@ type urnTestData struct {
 	shouldSucceed bool
 }
 
-//test data
-//see https://www.iana.org/assignments/urn-namespaces/urn-namespaces.xhtml
-//note that I am ordering the param strings to allow for testing
-//TODO find a better way to doing this
-//TODO failure tests!
+// test data
+// see https://www.iana.org/assignments/urn-namespaces/urn-namespaces.xhtml
+// note that I am ordering the param strings to allow for testing
+// TODO find a better way to doing this
+// TODO failure tests!
 var testUrns = []urnTestData{
 	{
 		Urn{
