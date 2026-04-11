@@ -79,8 +79,7 @@ func keyValuesToMap(kvStr string) map[string][]string {
 	if kvStr == "" {
 		return m
 	}
-	kvs := strings.Split(kvStr, "&")
-	for _, kv := range kvs {
+	for kv := range strings.SplitSeq(kvStr, "&") {
 		kva := strings.Split(kv, "=")
 		if len(kva) == 1 {
 			if m[kva[0]] == nil {
@@ -102,7 +101,7 @@ func (u *Urn) IsWellFormed() error {
 	if u.Nid == "" {
 		return errors.New("NID is required")
 	}
-	if u.Nss == nil || len(u.Nss) == 0 {
+	if len(u.Nss) == 0 {
 		return errors.New("NSS is required")
 	}
 	return nil
@@ -134,11 +133,11 @@ func (u Urn) Format() (string, error) {
 	}
 	sb.WriteString(strings.Join(u.Nss, nssDelim))
 
-	if u.Query != nil && len(u.Query) > 0 {
+	if len(u.Query) > 0 {
 		sb.WriteString("?=")
 		writeKeyValuesMap(&sb, u.Query)
 	}
-	if u.Resolvers != nil && len(u.Resolvers) > 0 {
+	if len(u.Resolvers) > 0 {
 		sb.WriteString("?+")
 		writeKeyValuesMap(&sb, u.Resolvers)
 	}

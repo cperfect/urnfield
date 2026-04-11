@@ -124,13 +124,13 @@ func (ns *NssSchema) validate(nss []string) error {
 	if err != nil {
 		return fmt.Errorf("Invalid value for element %s: %s", ns.Description, err)
 	} else if next == nil {
-		if nss != nil && len(nss) > 0 {
+		if len(nss) > 0 {
 			return errors.New("Too many nss elements")
 		}
 		return nil
 	}
 
-	if nss == nil || len(nss) < 1 {
+	if len(nss) < 1 {
 		return errors.New("Not enough nss elements")
 	}
 	return next.validate(nss)
