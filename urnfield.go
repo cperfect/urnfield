@@ -158,22 +158,21 @@ func writeKeyValuesMap(sb *strings.Builder, m map[string][]string) {
 	sort.Strings(keys)
 
 	for count, k := range keys {
-		vs, hasVal := m[k]
+		vs := m[k]
 		if count > 0 {
 			sb.WriteString("&")
 		}
-		if hasVal {
-			if len(vs) == 0 {
-				sb.WriteString(k)
-			} else if len(vs) > 0 {
-				for vcount, v := range vs {
-					if vcount > 0 {
-						sb.WriteString("&")
-					}
-					sb.WriteString(k)
-					sb.WriteString("=")
-					sb.WriteString(v)
+		if len(vs) == 0 {
+			// key with no value — write bare key (e.g. "?+niii")
+			sb.WriteString(k)
+		} else {
+			for vcount, v := range vs {
+				if vcount > 0 {
+					sb.WriteString("&")
 				}
+				sb.WriteString(k)
+				sb.WriteString("=")
+				sb.WriteString(v)
 			}
 		}
 	}
