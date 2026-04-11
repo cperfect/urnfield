@@ -75,7 +75,7 @@ func RegexNssElementValidatorFunc(pattern *regexp.Regexp, next *NssSchema) NssEl
 		if len(nss) == 0 {
 			return nil, nil, fmt.Errorf("expected element matching %s but got none", pattern.String())
 		}
-		if !pattern.Match([]byte(nss[0])) {
+		if !pattern.MatchString(nss[0]) {
 			return nil, nil, fmt.Errorf("Bad value for element: value %s should match %s", nss[0], pattern.String())
 		}
 		return nss[1:], next, nil
