@@ -139,3 +139,14 @@ func TestSchema(t *testing.T) {
 		assert.NoError(t, err, "%s did not validate: %s", u, err)
 	}
 }
+
+func TestSchemas(t *testing.T) {
+	for _, sd := range testUrnSchemas {
+		err := sd.Schema.Validate(sd.urnString)
+		if sd.shouldSucceed {
+			assert.NoError(t, err, "Test Schemas %s (%s) should not have produced error: %s", sd.desc, sd.urnString, err)
+		} else {
+			assert.Error(t, err, "Test Schemas %s (%s) should have produced an error", sd.desc, sd.urnString)
+		}
+	}
+}
