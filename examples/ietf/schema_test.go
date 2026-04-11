@@ -34,9 +34,9 @@ var (
 		"urn:ietf:std:90",   //https://tools.ietf.org/html/std90
 		"urn:ietf:bcp:13",   //https://tools.ietf.org/html/bcp13
 		"urn:ietf:id:draft-www-opsawg-yang-vpn-service-pm-02", //https://tools.ietf.org/html/draft-www-opsawg-yang-vpn-service-pm-02
-		"urn:ietf:mtg:ietf55",                                 //RFC 6924 mtg sub-namespace
-		"urn:ietf:params:xml:ns:allocationToken-1.0",          //https://www.iana.org/assignments/xml-registry/ns/allocationToken-1.0.txt
-		"urn:ietf:any-string123",                              //anything else
+		"urn:ietf:mtg:ietf55",                        //RFC 6924 mtg sub-namespace
+		"urn:ietf:params:xml:ns:allocationToken-1.0", //https://www.iana.org/assignments/xml-registry/ns/allocationToken-1.0.txt
+		"urn:ietf:any-string123",                     //anything else
 	}
 )
 
