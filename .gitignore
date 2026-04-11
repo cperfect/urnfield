@@ -26,3 +26,6 @@ vendor/
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+
+# AI-generated code review findings
+code-review-findings_*.md
