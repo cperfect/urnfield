@@ -8,10 +8,11 @@ import (
 	"strings"
 )
 
-// Pattern is the regex used to parse a URN string into its components.
-const Pattern = `urn:(?P<NID>[-A-Za-z0-9]+):(?P<NSS>[\/:._\-;A-Za-z0-9]+)(?P<QUERY>\?=[=*&_\-\w]+)?(?P<RESOLVERS>\?\+[=*&_\-\w]+)?(?P<FRAGMENT>#[_*\-/\(\)\w]+)?`
+// Pattern is the regex used to parse a complete URN string into its components.
+// It is anchored with ^ and $ so it matches the full input string only; strings
+// with surrounding content will not match.
+const Pattern = `^urn:(?P<NID>[-A-Za-z0-9]+):(?P<NSS>[\/:._\-;A-Za-z0-9]+)(?P<QUERY>\?=[=*&_\-\w]+)?(?P<RESOLVERS>\?\+[=*&_\-\w]+)?(?P<FRAGMENT>#[_*\-/\(\)\w]+)?$`
 
-// the compile regex
 var urnRegex = regexp.MustCompile(Pattern)
 
 // Urn represents a parsed URN
@@ -31,18 +32,18 @@ type Urn struct {
 	Fragment string
 }
 
-// Parse an urn from a string returning the parsed Urn struct or an error
-// If *any* separators are "/" then NSSSlashDelimiter will be true
+// Parse parses a complete URN string and returns the parsed Urn struct or an error.
+// The input must be a standalone URN — strings with surrounding content will not match.
+// If *any* NSS separators are "/" then NssSlashDelimiter will be true.
 func Parse(urn string) (Urn, error) {
-	m := urnRegex.FindAllStringSubmatch(urn, -1)
-	if m == nil {
+	// FindStringSubmatch returns nil if the anchored pattern does not match the
+	// full input, so no further length checks for multiple matches are needed.
+	mp := urnRegex.FindStringSubmatch(urn)
+	if mp == nil {
 		return Urn{}, errors.New("urn did not match pattern")
-	} else if len(m) > 1 {
-		return Urn{}, errors.New("too many groups in match")
-	} else if len(m[0]) != 6 {
-		return Urn{}, fmt.Errorf("not enough groups (%d) in match", len(m[0]))
+	} else if len(mp) != 6 {
+		return Urn{}, fmt.Errorf("not enough groups (%d) in match", len(mp))
 	}
-	mp := m[0]
 	if mp[1] == "" {
 		return Urn{}, errors.New("No NID")
 	}

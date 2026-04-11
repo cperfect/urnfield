@@ -40,6 +40,18 @@ var testUrns = []urnTestData{
 		false,
 	},
 	{
+		Urn{},
+		"Bad - URN embedded in surrounding text",
+		"see urn:isbn:0451450523 for details",
+		false,
+	},
+	{
+		Urn{},
+		"Bad - leading whitespace",
+		" urn:isbn:0451450523",
+		false,
+	},
+	{
 		Urn{
 			Nid: "isan",
 			Nss: []string{"0000-0000-2CEA-0000-1-0000-0000-Y"},
