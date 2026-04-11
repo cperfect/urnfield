@@ -1,0 +1,33 @@
+# Contributing
+
+## Git Workflow
+
+This repository uses Trunk-Based Development using the default branch `main`. Changes should be divided into consistent working sets (e.g. a complete feature, fix, chore or related set of fixes, chores) on a branch based off `main` and a PR raised.
+
+## Code Style
+
+Please follow the [go style guide](https://google.github.io/styleguide/go/), including the [best practices](https://google.github.io/styleguide/go/best-practices).
+
+
+
+## Comments
+
+GoDoc Comments should be provided for exported module members. 
+
+Additional inline comments should be added for clarity when needed: e.g. for a complex algorithm, or if something non-obvious or unconventional/non-idiomatic choices have been made. Such comments should include *why* the choice was made.
+
+## Commit Messages
+
+Please follow [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/)
+
+## Testing
+
+Please update the tests to reflect your code changes. Pull requests will not be accepted if they are failing on GitHub actions.
+
+## Developing
+
+
+
+## Running Examples
+
+
