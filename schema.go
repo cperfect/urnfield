@@ -48,15 +48,21 @@ func (s *Schema) ValidateUrn(u Urn) error {
 // elements are expected, next is nil and nssRemainder should be empty.
 type NssElementValidator func(nss []string) (nssRemainder []string, next *NssSchema, err error)
 
-// GlobNssElementValidatorFunc returns an NssElementValidator that matches the remaining NSS
-// elements (joined with ":") against the given glob pattern. Useful for matching groups or
-// classes of resources. See https://github.com/gobwas/glob for pattern syntax.
+// GlobNssElementValidatorFunc returns an NssElementValidator that matches all
+// remaining NSS elements (joined with ":") against the given glob pattern.
+// This validator always terminates the chain — it consumes every remaining
+// element in one match, so no next NssSchema is accepted. This is intentional:
+// glob patterns are used for opaque or arbitrarily deep sub-namespaces (e.g.
+// the IETF "params" sub-namespace) where per-element structure is not defined.
+// For single-element pattern matching use RegexNssElementValidatorFunc instead.
+// See https://github.com/gobwas/glob for pattern syntax.
 func GlobNssElementValidatorFunc(glob glob.Glob) NssElementValidator {
 	return func(nss []string) ([]string, *NssSchema, error) {
+		if len(nss) == 0 {
+			return nil, nil, fmt.Errorf("expected element matching glob pattern but got none")
+		}
 		if !glob.Match(strings.Join(nss, ":")) {
-			//if next != nil {
 			return nil, nil, fmt.Errorf("Bad value for element: value %s should match glob pattern", nss)
-			//}
 		}
 		return []string{}, nil, nil
 	}
