@@ -8,10 +8,11 @@ import (
 	"strings"
 )
 
-// Pattern is the regex used to parse a URN string into its components.
-const Pattern = `urn:(?P<NID>[-A-Za-z0-9]+):(?P<NSS>[\/:._\-;A-Za-z0-9]+)(?P<QUERY>\?=[=*&_\-\w]+)?(?P<RESOLVERS>\?\+[=*&_\-\w]+)?(?P<FRAGMENT>#[_*\-/\(\)\w]+)?`
+// Pattern is the regex used to parse a complete URN string into its components.
+// It is anchored with ^ and $ so it matches the full input string only; strings
+// with surrounding content will not match.
+const Pattern = `^urn:(?P<NID>[-A-Za-z0-9]+):(?P<NSS>[\/:._\-;A-Za-z0-9]+)(?P<QUERY>\?=[=*&_\-\w]+)?(?P<RESOLVERS>\?\+[=*&_\-\w]+)?(?P<FRAGMENT>#[_*\-/\(\)\w]+)?$`
 
-// the compile regex
 var urnRegex = regexp.MustCompile(Pattern)
 
 // Urn represents a parsed URN
@@ -31,27 +32,27 @@ type Urn struct {
 	Fragment string
 }
 
-// Parse an urn from a string returning the parsed Urn struct or an error
-// If *any* separators are "/" then NSSSlashDelimiter will be true
+// Parse parses a complete URN string and returns the parsed Urn struct or an error.
+// The input must be a standalone URN — strings with surrounding content will not match.
+// If *any* NSS separators are "/" then NssSlashDelimiter will be true.
 func Parse(urn string) (Urn, error) {
-	m := urnRegex.FindAllStringSubmatch(urn, -1)
-	if m == nil {
+	// FindStringSubmatch returns nil if the anchored pattern does not match the
+	// full input, so no further length checks for multiple matches are needed.
+	mp := urnRegex.FindStringSubmatch(urn)
+	if mp == nil {
 		return Urn{}, errors.New("urn did not match pattern")
-	} else if len(m) > 1 {
-		return Urn{}, errors.New("too many groups in match")
-	} else if len(m[0]) != 6 {
-		return Urn{}, fmt.Errorf("not enough groups (%d) in match", len(m[0]))
+	} else if len(mp) != 6 {
+		return Urn{}, fmt.Errorf("not enough groups (%d) in match", len(mp))
 	}
-	mp := m[0]
 	if mp[1] == "" {
-		return Urn{}, errors.New("No NID")
+		return Urn{}, errors.New("no NID")
 	}
 
 	u := Urn{
 		Nid: mp[1],
 	}
 	if mp[2] == "" {
-		return Urn{}, errors.New("No NSS")
+		return Urn{}, errors.New("no NSS")
 	} else if strings.Contains(mp[2], ":") {
 		u.Nss = strings.Split(mp[2], ":")
 	} else if strings.Contains(mp[2], "/") {
@@ -79,8 +80,7 @@ func keyValuesToMap(kvStr string) map[string][]string {
 	if kvStr == "" {
 		return m
 	}
-	kvs := strings.Split(kvStr, "&")
-	for _, kv := range kvs {
+	for kv := range strings.SplitSeq(kvStr, "&") {
 		kva := strings.Split(kv, "=")
 		if len(kva) == 1 {
 			if m[kva[0]] == nil {
@@ -93,31 +93,30 @@ func keyValuesToMap(kvStr string) map[string][]string {
 	return m
 }
 
-// IsWellFormed checks for Well Formedness
+// IsWellFormed reports whether u is well-formed per RFC 8141, returning a
+// descriptive error if not. Returns an error if u is nil.
 func (u *Urn) IsWellFormed() error {
-	//TODO better error handling
 	if u == nil {
-		return errors.New("Urn object is null")
+		return errors.New("urn is nil")
 	}
 	if u.Nid == "" {
 		return errors.New("NID is required")
 	}
-	if u.Nss == nil || len(u.Nss) == 0 {
+	if len(u.Nss) == 0 {
 		return errors.New("NSS is required")
 	}
 	return nil
 }
 
-// ToString converts the Urn struct to a string
-// will throw an error if not well formed
-// this is a synonym of Format
+// ToString converts the Urn to its string representation.
+// It is a synonym for Format; prefer Format for consistency.
 func (u Urn) ToString() (string, error) {
 	return u.Format()
 }
 
-// Format a urn string from a Urn struct
-// will throw an error if not well formed
-// If NSSSlashDelimiter is true then all delimiters will be "/"
+// Format formats the Urn as a URN string per RFC 8141.
+// Returns an error if the Urn is not well-formed.
+// If NssSlashDelimiter is true, all NSS delimiters will be "/" instead of ":".
 func (u Urn) Format() (string, error) {
 	err := (&u).IsWellFormed()
 	if err != nil {
@@ -134,11 +133,11 @@ func (u Urn) Format() (string, error) {
 	}
 	sb.WriteString(strings.Join(u.Nss, nssDelim))
 
-	if u.Query != nil && len(u.Query) > 0 {
+	if len(u.Query) > 0 {
 		sb.WriteString("?=")
 		writeKeyValuesMap(&sb, u.Query)
 	}
-	if u.Resolvers != nil && len(u.Resolvers) > 0 {
+	if len(u.Resolvers) > 0 {
 		sb.WriteString("?+")
 		writeKeyValuesMap(&sb, u.Resolvers)
 	}
@@ -158,22 +157,21 @@ func writeKeyValuesMap(sb *strings.Builder, m map[string][]string) {
 	sort.Strings(keys)
 
 	for count, k := range keys {
-		vs, hasVal := m[k]
+		vs := m[k]
 		if count > 0 {
 			sb.WriteString("&")
 		}
-		if hasVal {
-			if len(vs) == 0 {
-				sb.WriteString(k)
-			} else if len(vs) > 0 {
-				for vcount, v := range vs {
-					if vcount > 0 {
-						sb.WriteString("&")
-					}
-					sb.WriteString(k)
-					sb.WriteString("=")
-					sb.WriteString(v)
+		if len(vs) == 0 {
+			// key with no value — write bare key (e.g. "?+niii")
+			sb.WriteString(k)
+		} else {
+			for vcount, v := range vs {
+				if vcount > 0 {
+					sb.WriteString("&")
 				}
+				sb.WriteString(k)
+				sb.WriteString("=")
+				sb.WriteString(v)
 			}
 		}
 	}

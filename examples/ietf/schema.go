@@ -65,7 +65,7 @@ var Schema = &urnfield.Schema{
 					),
 				},
 
-				//draft: string
+				// id: string — internet drafts (e.g. urn:ietf:id:draft-foo-bar-01)
 				{
 					Description: "draft-nss id: string",
 					ElementValidator: urnfield.EqualsNssElementValidatorFunc(
