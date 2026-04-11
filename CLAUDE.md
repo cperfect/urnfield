@@ -61,3 +61,6 @@ A real-world implementation of the IETF URN namespace (RFC 2648). Read this to u
 - **Validator chain**: `NssElementValidator` functions receive remaining NSS elements and return the next validator to use — this is the core extensibility mechanism.
 - **`api.go`** is currently a stub; public API is not yet finalized.
 - Tests use data-driven structs comparing expected vs. actual `Urn` values.
+
+## Directives
+- Ignore THOUGHTS.md unless explicitly told otherwise
