@@ -93,11 +93,11 @@ func keyValuesToMap(kvStr string) map[string][]string {
 	return m
 }
 
-// IsWellFormed checks for Well Formedness
+// IsWellFormed reports whether u is well-formed per RFC 8141, returning a
+// descriptive error if not. Returns an error if u is nil.
 func (u *Urn) IsWellFormed() error {
-	//TODO better error handling
 	if u == nil {
-		return errors.New("Urn object is null")
+		return errors.New("Urn object is nil")
 	}
 	if u.Nid == "" {
 		return errors.New("NID is required")
@@ -108,16 +108,15 @@ func (u *Urn) IsWellFormed() error {
 	return nil
 }
 
-// ToString converts the Urn struct to a string
-// will throw an error if not well formed
-// this is a synonym of Format
+// ToString converts the Urn to its string representation.
+// It is a synonym for Format; prefer Format for consistency.
 func (u Urn) ToString() (string, error) {
 	return u.Format()
 }
 
-// Format a urn string from a Urn struct
-// will throw an error if not well formed
-// If NSSSlashDelimiter is true then all delimiters will be "/"
+// Format formats the Urn as a URN string per RFC 8141.
+// Returns an error if the Urn is not well-formed.
+// If NssSlashDelimiter is true, all NSS delimiters will be "/" instead of ":".
 func (u Urn) Format() (string, error) {
 	err := (&u).IsWellFormed()
 	if err != nil {
