@@ -2,7 +2,7 @@
 name: review-code
 description: Performs a code review. On main, reviews the full codebase. On a feature branch, reviews the diff against main. Accepts an optional PR number to review a specific PR. On main all the source code files, including the tests.
 argument-hint: pr-number
-allowed-tools: Read Grep Glob Bash(git branch *) Bash(git diff *) Bash(git ls-files *) Bash(gh pr diff *) Bash(gh pr review *)
+allowed-tools: Read Grep Glob Bash(git branch *) Bash(git diff *) Bash(git ls-files *) Bash(gh pr diff *) Bash(gh pr review *) Bash(gofmt *) Bash(go vet *) Bash(staticcheck *)
 ---
 
 Read [CONTRIBUTING.md](../../../CONTRIBUTING.md), then review the code defined in **Scope** below against every guideline it defines.
@@ -17,6 +17,14 @@ Determine the scope using the following logic:
 2. Otherwise, run `git branch --show-current` to get the current branch.
    - If the branch is not `main`, run `git diff main...HEAD` and review the branch diff.
    - If the branch is `main`, run `git ls-files` filtered to `*.go` files and review the full codebase.
+
+## Static Analysis
+
+Run the following tools and collect their output. Include any findings in the review, filtered to files within the scope where the scope is a diff or PR.
+
+1. **Format:** `gofmt -l .` — list files with formatting issues.
+2. **Vet:** `go vet ./...` — report suspicious constructs.
+3. **Staticcheck:** `staticcheck ./...` — report style, correctness, and performance issues (includes hints). If `staticcheck` is not installed, skip this step and note it was unavailable.
 
 ## Instructions
 
