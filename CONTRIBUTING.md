@@ -32,8 +32,40 @@ Please update the tests to reflect your code changes. Pull requests will not be 
 
 ## Developing
 
+Requires Go 1.26 or later. A dev container configuration is provided for VS Code and compatible editors — this is the recommended way to get a consistent environment.
 
+```bash
+# Install dependencies
+go mod tidy
+
+# Run the full test suite
+go test ./...
+
+# Check formatting (should produce no output)
+gofmt -l .
+
+# Run static analysis
+go vet ./...
+```
+
+### Claude Skills
+
+Two Claude Code skills are available to assist with code quality:
+
+- **`/review-code`** — Reviews the codebase against the guidelines in this file. On `main` it reviews all Go source files; on a feature branch it reviews the diff against `main`; pass a PR number to review a specific PR. Runs `gofmt`, `go vet`, and `staticcheck` as part of the review. Optionally writes findings to a `code-review-findings_<timestamp>.md` file (gitignored).
+
+- **`/fix-review`** — Works through a code review findings file issue by issue. Presents each finding, recommends a fix, and waits for your instruction before making any changes. Applies fixes with appropriate tests and comments, updates the findings file, and offers a commit after each resolution. Defaults to the most recent findings file, or pass a path explicitly.
 
 ## Running Examples
+
+Examples are provided as runnable test packages under `examples/`. Each example demonstrates a real-world schema implementation.
+
+```bash
+# Run all examples
+go test ./examples/...
+
+# Run a specific example
+go test ./examples/ietf
+```
 
 
