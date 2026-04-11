@@ -1,3 +1,28 @@
+// Package urnfield parses, formats, and validates URNs (Uniform Resource Names)
+// per RFC 8141.
+//
+// # Parsing
+//
+// Parse uses a single anchored regex (Pattern) to capture the five URN components
+// in one pass: NID, NSS, query (?=), resolvers (?+), and fragment (#). The NSS
+// capture is then split into a []string by scanning for ":" or "/" delimiters —
+// whichever appears first is used exclusively (mixed delimiters are not supported).
+// The chosen delimiter is recorded in NssSlashDelimiter for faithful round-trip
+// formatting. Query and resolver components are parsed as "&"-delimited key=value
+// pairs; keys without a "=" are stored with an empty value slice.
+//
+// # Formatting
+//
+// Format is the inverse of Parse. Query and resolver map keys are sorted
+// alphabetically before output. The URN spec does not require a key order, but
+// sorting makes the output deterministic — without it, map iteration order would
+// make round-trip equality tests unreliable. The sort is applied in writeKeyValuesMap
+// and is the only place the library intentionally diverges from strict spec neutrality.
+//
+// # Validation
+//
+// Structural validation (well-formedness) is handled by IsWellFormed. Namespace-
+// specific validation is provided separately via the Schema type in schema.go.
 package urnfield
 
 import (

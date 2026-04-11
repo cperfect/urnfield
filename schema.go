@@ -1,3 +1,35 @@
+// This file implements namespace-specific URN validation via a recursive
+// continuation-passing validator chain.
+//
+// # Validator chain
+//
+// The core abstraction is NssElementValidator — a function with the signature:
+//
+//	func(nss []string) (remainder []string, next *NssSchema, err error)
+//
+// Each validator processes the head of the NSS slice and returns the unconsumed
+// tail plus the NssSchema to use for the next element. Returning next == nil
+// signals that no further elements are expected. This is a continuation-passing
+// style: the schema structure is a linked list of validators built at definition
+// time, and validate() walks it recursively at validation time.
+//
+// # OR branching
+//
+// ComplexOrNssElementValidatorFunc implements branching by trying each alternative
+// NssSchema in order and returning on the first success. It does not backtrack
+// within a branch — once a validator succeeds it commits. This linear scan is
+// sufficient because URN sub-namespaces are typically keyed on a fixed first
+// element (e.g. "rfc", "params"), making branches mutually exclusive in practice.
+//
+// SimpleOrNssElementValidatorFunc is an optimised variant for fixed-string
+// branching backed by a map lookup (O(1)) rather than linear scan.
+//
+// # Termination
+//
+// validate() enforces exact element consumption: if next == nil but remainder is
+// non-empty, validation fails with "too many nss elements". If next != nil but
+// remainder is empty, it fails with "not enough nss elements". This ensures
+// schemas are fully structural — every element must be accounted for.
 package urnfield
 
 import (

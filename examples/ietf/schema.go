@@ -1,3 +1,33 @@
+// Package ietf provides an urnfield schema for the IETF URN namespace.
+//
+// # Structure
+//
+// The IETF namespace uses a two-level NSS structure: a sub-namespace keyword
+// (e.g. "rfc", "params") followed by a sub-namespace-specific identifier.
+// This is modelled with ComplexOrNssElementValidatorFunc at the top level,
+// branching on the first element.
+//
+// # Shared terminals
+//
+// Two terminal NssSchemas are defined once and reused across branches:
+//   - oneOrMoreDigitsNssSchema — matches 1*DIGIT (used by rfc, fyi, std, bcp)
+//   - stringNssSchema          — matches 1*(DIGIT / ALPHA / "-") (used by id, mtg)
+//
+// Reuse keeps the schema concise and ensures consistent validation behaviour
+// across branches that share the same identifier format.
+//
+// # Opaque sub-namespace
+//
+// The "params" sub-namespace is intentionally matched with a catch-all glob ("*")
+// because RFC 3553 explicitly defines it as primarily opaque — IANA assigns names
+// within it without a fixed structural grammar. The glob consumes all remaining
+// elements joined with ":", which is consistent with the RFC's colon-as-hierarchy
+// description.
+//
+// # Fallback
+//
+// A bare stringNssSchema at the end of the alternatives list acts as a fallback
+// for unregistered single-element sub-namespaces, which the RFC permits.
 package ietf
 
 import (
