@@ -21,9 +21,10 @@ var stringNssSchema = &urnfield.NssSchema{
 
 // Schema is the urnfield schema for the IETF URN namespace as defined in
 // https://tools.ietf.org/html/rfc2648, updated by https://tools.ietf.org/html/rfc3553.
-// TODO: update to https://tools.ietf.org/html/rfc6924
+// RFC 6924 (https://tools.ietf.org/html/rfc6924) formalises the IANA registry for
+// sub-namespaces but does not change their formats; future additions require IETF Review.
 var Schema = &urnfield.Schema{
-	Description: "Schema for https://tools.ietf.org/html/rfc2648",
+	Description: "Schema for the IETF URN namespace (RFC 2648, RFC 3553, RFC 6924)",
 	Nid:         "ietf",
 	NssSchema: &urnfield.NssSchema{
 		Description: "First element alternatives",
@@ -70,6 +71,15 @@ var Schema = &urnfield.Schema{
 					Description: "draft-nss id: string",
 					ElementValidator: urnfield.EqualsNssElementValidatorFunc(
 						"id",
+						stringNssSchema,
+					),
+				},
+
+				// mtg: string — IETF meeting documents (e.g. urn:ietf:mtg:ietf55)
+				{
+					Description: "mtg-nss mtg: string",
+					ElementValidator: urnfield.EqualsNssElementValidatorFunc(
+						"mtg",
 						stringNssSchema,
 					),
 				},
