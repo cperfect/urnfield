@@ -66,6 +66,9 @@ func GlobNssElementValidatorFunc(glob glob.Glob) NssElementValidator {
 // element against the given compiled regex pattern.
 func RegexNssElementValidatorFunc(pattern *regexp.Regexp, next *NssSchema) NssElementValidator {
 	return func(nss []string) ([]string, *NssSchema, error) {
+		if len(nss) == 0 {
+			return nil, nil, fmt.Errorf("expected element matching %s but got none", pattern.String())
+		}
 		if !pattern.Match([]byte(nss[0])) {
 			return nil, nil, fmt.Errorf("Bad value for element: value %s should match %s", nss[0], pattern.String())
 		}
@@ -77,6 +80,9 @@ func RegexNssElementValidatorFunc(pattern *regexp.Regexp, next *NssSchema) NssEl
 // NSS element to equal nssEquals exactly.
 func EqualsNssElementValidatorFunc(nssEquals string, next *NssSchema) NssElementValidator {
 	return func(nss []string) ([]string, *NssSchema, error) {
+		if len(nss) == 0 {
+			return nil, nil, fmt.Errorf("expected element equal to %s but got none", nssEquals)
+		}
 		if nssEquals != nss[0] {
 			return nil, nil, fmt.Errorf("Bad value for element: value %s should equal %s", nss[0], nssEquals)
 		}
@@ -88,6 +94,9 @@ func EqualsNssElementValidatorFunc(nssEquals string, next *NssSchema) NssElement
 // element against a map of allowed string values, each mapping to the next NssSchema to use.
 func SimpleOrNssElementValidatorFunc(alternatives map[string]*NssSchema) NssElementValidator {
 	return func(nss []string) ([]string, *NssSchema, error) {
+		if len(nss) == 0 {
+			return nil, nil, fmt.Errorf("expected one of %v but got none", alternatives)
+		}
 		if next, ok := alternatives[nss[0]]; ok {
 			return nss[1:], next, nil
 		}
@@ -99,6 +108,9 @@ func SimpleOrNssElementValidatorFunc(alternatives map[string]*NssSchema) NssElem
 // provided NssSchemas in order, returning the result of the first one that succeeds.
 func ComplexOrNssElementValidatorFunc(alternatives []*NssSchema) NssElementValidator {
 	return func(nss []string) ([]string, *NssSchema, error) {
+		if len(nss) == 0 {
+			return nil, nil, fmt.Errorf("expected one of %v but got none", alternatives)
+		}
 		for _, schema := range alternatives {
 			nss, next, err := schema.ElementValidator(nss)
 			if err == nil { //TODO counter intuitive - find a better way
@@ -117,8 +129,9 @@ type NssSchema struct {
 
 // recursively validate the nss elements
 func (ns *NssSchema) validate(nss []string) error {
-	if nss == nil {
-		return fmt.Errorf("No value for nss element %s)", ns.Description)
+	// len(nil) == 0, so this covers both nil and empty slices
+	if len(nss) == 0 {
+		return fmt.Errorf("no value for nss element %s", ns.Description)
 	}
 	nss, next, err := ns.ElementValidator(nss)
 	if err != nil {

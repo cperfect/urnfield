@@ -299,6 +299,31 @@ var testUrnSchemas = []testSchemaData{
 	},
 }
 
+// TestValidateUrnEmptyNss ensures that ValidateUrn returns an error (rather than
+// panicking) when called with a Urn whose Nss slice is empty. This exercises the
+// len(nss)==0 guard added to each validator factory and to validate itself.
+func TestValidateUrnEmptyNss(t *testing.T) {
+	emptyNss := Urn{Nss: []string{}}
+
+	schemas := []struct {
+		name   string
+		schema *Schema
+	}{
+		{"regex validator", &Schema{Nid: "", NssSchema: xTestSchema.NssSchema}},
+		{"equals validator", &Schema{Nid: "", NssSchema: xTestGlobSchema.NssSchema}},
+		{"simple-or validator", &Schema{Nid: "", NssSchema: xTestOrSchema.NssSchema}},
+		{"complex-or validator", &Schema{Nid: "", NssSchema: xTestComplexOrSchema.NssSchema}},
+	}
+
+	for _, tc := range schemas {
+		// Use a recovered call so a panic surfaces as a test failure rather than a crash.
+		assert.NotPanics(t, func() {
+			err := tc.schema.ValidateUrn(emptyNss)
+			assert.Error(t, err, "%s: expected error for empty NSS, got nil", tc.name)
+		}, "%s: ValidateUrn panicked on empty NSS", tc.name)
+	}
+}
+
 func TestSchemas(t *testing.T) {
 	for _, sd := range testUrnSchemas {
 		err := sd.Schema.Validate(sd.urnString)
