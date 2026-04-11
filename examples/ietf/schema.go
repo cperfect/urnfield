@@ -7,13 +7,13 @@ import (
 	"github.com/gobwas/glob"
 )
 
-//1*DIGIT
+// 1*DIGIT
 var oneOrMoreDigitsNssSchema = &urnfield.NssSchema{
 	Description:      "1*DIGIT",
 	ElementValidator: urnfield.RegexNssElementValidatorFunc(regexp.MustCompile(`^\d+$`), nil),
 }
 
-//string = 1*(DIGIT / ALPHA / "-")
+// string = 1*(DIGIT / ALPHA / "-")
 var stringNssSchema = &urnfield.NssSchema{
 	Description:      "string",
 	ElementValidator: urnfield.RegexNssElementValidatorFunc(regexp.MustCompile(`^[0-9a-zA-Z-]+$`), nil),
