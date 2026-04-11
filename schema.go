@@ -62,7 +62,7 @@ func GlobNssElementValidatorFunc(glob glob.Glob) NssElementValidator {
 			return nil, nil, fmt.Errorf("expected element matching glob pattern but got none")
 		}
 		if !glob.Match(strings.Join(nss, ":")) {
-			return nil, nil, fmt.Errorf("Bad value for element: value %s should match glob pattern", nss)
+			return nil, nil, fmt.Errorf("bad value for element: value %s should match glob pattern", nss)
 		}
 		return []string{}, nil, nil
 	}
@@ -76,7 +76,7 @@ func RegexNssElementValidatorFunc(pattern *regexp.Regexp, next *NssSchema) NssEl
 			return nil, nil, fmt.Errorf("expected element matching %s but got none", pattern.String())
 		}
 		if !pattern.MatchString(nss[0]) {
-			return nil, nil, fmt.Errorf("Bad value for element: value %s should match %s", nss[0], pattern.String())
+			return nil, nil, fmt.Errorf("bad value for element: value %s should match %s", nss[0], pattern.String())
 		}
 		return nss[1:], next, nil
 	}
@@ -90,7 +90,7 @@ func EqualsNssElementValidatorFunc(nssEquals string, next *NssSchema) NssElement
 			return nil, nil, fmt.Errorf("expected element equal to %s but got none", nssEquals)
 		}
 		if nssEquals != nss[0] {
-			return nil, nil, fmt.Errorf("Bad value for element: value %s should equal %s", nss[0], nssEquals)
+			return nil, nil, fmt.Errorf("bad value for element: value %s should equal %s", nss[0], nssEquals)
 		}
 		return nss[1:], next, nil
 	}
@@ -106,7 +106,7 @@ func SimpleOrNssElementValidatorFunc(alternatives map[string]*NssSchema) NssElem
 		if next, ok := alternatives[nss[0]]; ok {
 			return nss[1:], next, nil
 		}
-		return []string{}, nil, fmt.Errorf("No matching alternative for nss element %s in %v", nss[0], alternatives)
+		return []string{}, nil, fmt.Errorf("no matching alternative for nss element %s in %v", nss[0], alternatives)
 	}
 }
 
@@ -123,7 +123,7 @@ func ComplexOrNssElementValidatorFunc(alternatives []*NssSchema) NssElementValid
 				return nss, next, err
 			}
 		}
-		return nil, nil, fmt.Errorf("No matching alternative for nss element %s in %v", nss[0], alternatives)
+		return nil, nil, fmt.Errorf("no matching alternative for nss element %s in %v", nss[0], alternatives)
 	}
 }
 
@@ -141,16 +141,16 @@ func (ns *NssSchema) validate(nss []string) error {
 	}
 	nss, next, err := ns.ElementValidator(nss)
 	if err != nil {
-		return fmt.Errorf("Invalid value for element %s: %s", ns.Description, err)
+		return fmt.Errorf("invalid value for element %s: %s", ns.Description, err)
 	} else if next == nil {
 		if len(nss) > 0 {
-			return errors.New("Too many nss elements")
+			return errors.New("too many nss elements")
 		}
 		return nil
 	}
 
 	if len(nss) < 1 {
-		return errors.New("Not enough nss elements")
+		return errors.New("not enough nss elements")
 	}
 	return next.validate(nss)
 }

@@ -45,14 +45,14 @@ func Parse(urn string) (Urn, error) {
 		return Urn{}, fmt.Errorf("not enough groups (%d) in match", len(mp))
 	}
 	if mp[1] == "" {
-		return Urn{}, errors.New("No NID")
+		return Urn{}, errors.New("no NID")
 	}
 
 	u := Urn{
 		Nid: mp[1],
 	}
 	if mp[2] == "" {
-		return Urn{}, errors.New("No NSS")
+		return Urn{}, errors.New("no NSS")
 	} else if strings.Contains(mp[2], ":") {
 		u.Nss = strings.Split(mp[2], ":")
 	} else if strings.Contains(mp[2], "/") {
@@ -97,7 +97,7 @@ func keyValuesToMap(kvStr string) map[string][]string {
 // descriptive error if not. Returns an error if u is nil.
 func (u *Urn) IsWellFormed() error {
 	if u == nil {
-		return errors.New("Urn object is nil")
+		return errors.New("urn is nil")
 	}
 	if u.Nid == "" {
 		return errors.New("NID is required")
