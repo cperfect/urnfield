@@ -8,14 +8,14 @@ import (
 	"strings"
 )
 
-//Pattern for the regex to map and parse an URN
+// Pattern for the regex to map and parse an URN
 const Pattern = `urn:(?P<NID>[-A-Za-z0-9]+):(?P<NSS>[\/:._\-;A-Za-z0-9]+)(?P<QUERY>\?=[=*&_\-\w]+)?(?P<RESOLVERS>\?\+[=*&_\-\w]+)?(?P<FRAGMENT>#[_*\-/\(\)\w]+)?`
 
-//the compile regex
+// the compile regex
 var urnRegex = regexp.MustCompile(Pattern)
 
-//Urn represents a parsed URN
-//see https://tools.ietf.org/html/rfc8141
+// Urn represents a parsed URN
+// see https://tools.ietf.org/html/rfc8141
 type Urn struct {
 	//Nid is the Namespace ID (Nid)
 	Nid string
@@ -31,8 +31,8 @@ type Urn struct {
 	Fragment string
 }
 
-//Parse an urn from a string returning the parsed Urn struct or an error
-//If *any* separators are "/" then NSSSlashDelimiter will be true
+// Parse an urn from a string returning the parsed Urn struct or an error
+// If *any* separators are "/" then NSSSlashDelimiter will be true
 func Parse(urn string) (Urn, error) {
 	m := urnRegex.FindAllStringSubmatch(urn, -1)
 	if m == nil {
@@ -73,7 +73,7 @@ func Parse(urn string) (Urn, error) {
 	return u, nil
 }
 
-//utility method to break a q or r component string to a map
+// utility method to break a q or r component string to a map
 func keyValuesToMap(kvStr string) map[string][]string {
 	m := map[string][]string{}
 	if kvStr == "" {
@@ -93,7 +93,7 @@ func keyValuesToMap(kvStr string) map[string][]string {
 	return m
 }
 
-//IsWellFormed checks for Well Formedness
+// IsWellFormed checks for Well Formedness
 func (u *Urn) IsWellFormed() error {
 	//TODO better error handling
 	if u == nil {
@@ -108,16 +108,16 @@ func (u *Urn) IsWellFormed() error {
 	return nil
 }
 
-//ToString converts the Urn struct to a string
-//will throw an error if not well formed
-//this is a synonym of Format
+// ToString converts the Urn struct to a string
+// will throw an error if not well formed
+// this is a synonym of Format
 func (u Urn) ToString() (string, error) {
 	return u.Format()
 }
 
-//Format a urn string from a Urn struct
-//will throw an error if not well formed
-//If NSSSlashDelimiter is true then all delimiters will be "/"
+// Format a urn string from a Urn struct
+// will throw an error if not well formed
+// If NSSSlashDelimiter is true then all delimiters will be "/"
 func (u Urn) Format() (string, error) {
 	err := (&u).IsWellFormed()
 	if err != nil {
@@ -149,7 +149,7 @@ func (u Urn) Format() (string, error) {
 	return sb.String(), nil
 }
 
-//ordering the params is not part of the spec but makes testing easier!
+// ordering the params is not part of the spec but makes testing easier!
 func writeKeyValuesMap(sb *strings.Builder, m map[string][]string) {
 	keys := make([]string, 0, len(m))
 	for k := range m {
