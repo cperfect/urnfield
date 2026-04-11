@@ -1,11 +1,9 @@
-Library for using URN fields in go structs or func params
-====================================================
+# `urnfield` is a go library for using URN fields in structs or function params
 
 WARNING WIP - use at your own risk
 
-See https://tools.ietf.org/html/rfc8141
-
 ## How URNs work (RFC 8141)
+See https://tools.ietf.org/html/rfc8141
 
 A URN (Uniform Resource Name) is a persistent, location-independent identifier. The full syntax is:
 
@@ -34,6 +32,76 @@ urn:payments:account:au:123456:78901234?+resolve=https://api.example.com?=curren
 ## Usage
 
 > The intent is that once a URN string is created and set it is immutable (except possibly the resolvers component).
+
+## Examples
+
+### Parsing and formatting
+
+```go
+// Parse a URN string into a Urn struct
+u, err := urnfield.Parse("urn:ietf:rfc:2648")
+if err != nil {
+    log.Fatal(err)
+}
+
+fmt.Println(u.Nid)  // "ietf"
+fmt.Println(u.Nss)  // ["rfc", "2648"]
+
+// Format it back to a string
+s, err := u.Format()
+if err != nil {
+    log.Fatal(err)
+}
+fmt.Println(s) // "urn:ietf:rfc:2648"
+```
+
+### Defining a schema
+
+Schemas validate the structure of a namespace's NSS using a chain of element validators. The IETF namespace ([RFC 2648](https://tools.ietf.org/html/rfc2648)) accepts several sub-namespaces (`rfc`, `fyi`, `std`, `bcp`, `id`, `params`) plus any other string:
+
+```go
+var oneOrMoreDigits = &urnfield.NssSchema{
+    Description:      "1*DIGIT",
+    ElementValidator: urnfield.RegexNssElementValidatorFunc(regexp.MustCompile(`^\d+$`), nil),
+}
+
+var IETFSchema = &urnfield.Schema{
+    Description: "IETF URN namespace (RFC 2648)",
+    Nid:         "ietf",
+    NssSchema: &urnfield.NssSchema{
+        Description: "sub-namespace",
+        ElementValidator: urnfield.ComplexOrNssElementValidatorFunc(
+            []*urnfield.NssSchema{
+                // rfc: 1*DIGIT  e.g. urn:ietf:rfc:2648
+                {ElementValidator: urnfield.EqualsNssElementValidatorFunc("rfc", oneOrMoreDigits)},
+                // fyi: 1*DIGIT  e.g. urn:ietf:fyi:20
+                {ElementValidator: urnfield.EqualsNssElementValidatorFunc("fyi", oneOrMoreDigits)},
+                // params: *    e.g. urn:ietf:params:xml:ns:allocationToken-1.0
+                {
+                    ElementValidator: urnfield.EqualsNssElementValidatorFunc("params",
+                        &urnfield.NssSchema{
+                            ElementValidator: urnfield.GlobNssElementValidatorFunc(glob.MustCompile("*")),
+                        }),
+                },
+            },
+        ),
+    },
+}
+```
+
+### Validating a URN against a schema
+
+```go
+err := IETFSchema.Validate("urn:ietf:rfc:2648")   // nil
+err  = IETFSchema.Validate("urn:ietf:rfc:abc")    // error: "abc" is not digits
+err  = IETFSchema.Validate("urn:isbn:123")         // error: NID mismatch
+
+// Validate a pre-parsed Urn directly
+u, _ := urnfield.Parse("urn:ietf:params:xml:ns:allocationToken-1.0")
+err   = IETFSchema.ValidateUrn(u)                  // nil
+```
+
+A full working implementation of the IETF schema is available in [`examples/ietf/`](examples/ietf/).
 
 ## Use cases
 
