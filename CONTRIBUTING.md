@@ -1,4 +1,5 @@
 # Contributing
+> This guide applies equally to both AI agents and meatsacks, unless otherwise stated.
 
 ## Use of AI
 This project has been set up to use Claude code. 
