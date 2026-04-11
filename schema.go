@@ -1,3 +1,35 @@
+// This file implements namespace-specific URN validation via a recursive
+// continuation-passing validator chain.
+//
+// # Validator chain
+//
+// The core abstraction is NssElementValidator — a function with the signature:
+//
+//	func(nss []string) (remainder []string, next *NssSchema, err error)
+//
+// Each validator processes the head of the NSS slice and returns the unconsumed
+// tail plus the NssSchema to use for the next element. Returning next == nil
+// signals that no further elements are expected. This is a continuation-passing
+// style: the schema structure is a linked list of validators built at definition
+// time, and validate() walks it recursively at validation time.
+//
+// # OR branching
+//
+// ComplexOrNssElementValidatorFunc implements branching by trying each alternative
+// NssSchema in order and returning on the first success. It does not backtrack
+// within a branch — once a validator succeeds it commits. This linear scan is
+// sufficient because URN sub-namespaces are typically keyed on a fixed first
+// element (e.g. "rfc", "params"), making branches mutually exclusive in practice.
+//
+// SimpleOrNssElementValidatorFunc is an optimised variant for fixed-string
+// branching backed by a map lookup (O(1)) rather than linear scan.
+//
+// # Termination
+//
+// validate() enforces exact element consumption: if next == nil but remainder is
+// non-empty, validation fails with "too many nss elements". If next != nil but
+// remainder is empty, it fails with "not enough nss elements". This ensures
+// schemas are fully structural — every element must be accounted for.
 package urnfield
 
 import (
@@ -8,9 +40,6 @@ import (
 
 	"github.com/gobwas/glob"
 )
-
-//TODO - prevent use of nss delims in validator patterns - maybe allow in glob only?
-//TODO - fix functor namings?
 
 // Schema defines a valid URN in a specific namespace.
 // Note that Schema does not validate the query, resolvers, or fragment components.
@@ -69,7 +98,9 @@ func GlobNssElementValidatorFunc(glob glob.Glob) NssElementValidator {
 }
 
 // RegexNssElementValidatorFunc returns an NssElementValidator that matches the current NSS
-// element against the given compiled regex pattern.
+// element against the given compiled regex pattern. Patterns operate on individual
+// pre-split elements — do not include ":" or "/" in the pattern, as these delimiters
+// are consumed by Parse before validation.
 func RegexNssElementValidatorFunc(pattern *regexp.Regexp, next *NssSchema) NssElementValidator {
 	return func(nss []string) ([]string, *NssSchema, error) {
 		if len(nss) == 0 {
@@ -83,7 +114,8 @@ func RegexNssElementValidatorFunc(pattern *regexp.Regexp, next *NssSchema) NssEl
 }
 
 // EqualsNssElementValidatorFunc returns an NssElementValidator that requires the current
-// NSS element to equal nssEquals exactly.
+// NSS element to equal nssEquals exactly. The value operates on a single pre-split
+// element — do not include ":" or "/" in nssEquals.
 func EqualsNssElementValidatorFunc(nssEquals string, next *NssSchema) NssElementValidator {
 	return func(nss []string) ([]string, *NssSchema, error) {
 		if len(nss) == 0 {
@@ -98,6 +130,8 @@ func EqualsNssElementValidatorFunc(nssEquals string, next *NssSchema) NssElement
 
 // SimpleOrNssElementValidatorFunc returns an NssElementValidator that matches the current NSS
 // element against a map of allowed string values, each mapping to the next NssSchema to use.
+// Use this when each alternative is a fixed string (e.g. "rfc", "fyi", "std"). For alternatives
+// that require their own sub-validation logic, use ComplexOrNssElementValidatorFunc instead.
 func SimpleOrNssElementValidatorFunc(alternatives map[string]*NssSchema) NssElementValidator {
 	return func(nss []string) ([]string, *NssSchema, error) {
 		if len(nss) == 0 {
@@ -112,6 +146,9 @@ func SimpleOrNssElementValidatorFunc(alternatives map[string]*NssSchema) NssElem
 
 // ComplexOrNssElementValidatorFunc returns an NssElementValidator that tries each of the
 // provided NssSchemas in order, returning the result of the first one that succeeds.
+// Use this when alternatives need their own validation logic beyond a fixed string match
+// (e.g. "rfc" followed by digits, vs "params" followed by an opaque glob). For simple
+// fixed-string branching use SimpleOrNssElementValidatorFunc instead.
 func ComplexOrNssElementValidatorFunc(alternatives []*NssSchema) NssElementValidator {
 	return func(nss []string) ([]string, *NssSchema, error) {
 		if len(nss) == 0 {
@@ -119,9 +156,10 @@ func ComplexOrNssElementValidatorFunc(alternatives []*NssSchema) NssElementValid
 		}
 		for _, schema := range alternatives {
 			nss, next, err := schema.ElementValidator(nss)
-			if err == nil { //TODO counter intuitive - find a better way
-				return nss, next, err
+			if err != nil {
+				continue
 			}
+			return nss, next, nil
 		}
 		return nil, nil, fmt.Errorf("no matching alternative for nss element %s in %v", nss[0], alternatives)
 	}

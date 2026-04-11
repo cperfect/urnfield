@@ -59,7 +59,7 @@ A real-world implementation of the IETF URN namespace (RFC 2648). Read this to u
 ## Key Patterns
 
 - **Validator chain**: `NssElementValidator` functions receive remaining NSS elements and return the next validator to use — this is the core extensibility mechanism.
-- **`api.go`** is currently a stub; public API is not yet finalized.
+- The public API is the exported symbols in `urnfield.go` (parsing/formatting) and `schema.go` (validation). There is no separate `api.go`.
 - Tests use data-driven structs comparing expected vs. actual `Urn` values.
 
 ## Directives

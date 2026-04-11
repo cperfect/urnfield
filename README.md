@@ -1,7 +1,5 @@
 # `urnfield` is a go library for using URN fields in structs or function params
 
-WARNING WIP - use at your own risk
-
 ## How URNs work (RFC 8141)
 See https://tools.ietf.org/html/rfc8141
 

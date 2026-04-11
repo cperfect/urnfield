@@ -17,9 +17,11 @@ type urnTestData struct {
 
 // test data
 // see https://www.iana.org/assignments/urn-namespaces/urn-namespaces.xhtml
-// note that I am ordering the param strings to allow for testing
-// TODO find a better way to doing this
-// TODO failure tests!
+//
+// Query and Resolver keys are sorted alphabetically in expected urnStrings to
+// match the deterministic output of writeKeyValuesMap, which sorts keys before
+// writing. This keeps round-trip Format tests predictable without needing a
+// custom comparator.
 var testUrns = []urnTestData{
 	{
 		Urn{
@@ -49,6 +51,36 @@ var testUrns = []urnTestData{
 		Urn{},
 		"Bad - leading whitespace",
 		" urn:isbn:0451450523",
+		false,
+	},
+	{
+		Urn{},
+		"Bad - empty string",
+		"",
+		false,
+	},
+	{
+		Urn{},
+		"Bad - not a URN",
+		"not-a-urn",
+		false,
+	},
+	{
+		Urn{},
+		"Bad - missing urn: prefix",
+		"isbn:0451450523",
+		false,
+	},
+	{
+		Urn{},
+		"Bad - space in NID",
+		"urn:inv alid:nss",
+		false,
+	},
+	{
+		Urn{},
+		"Bad - trailing colon, empty NSS",
+		"urn:isbn:",
 		false,
 	},
 	{
