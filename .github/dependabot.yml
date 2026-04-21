@@ -1,0 +1,19 @@
+version: 2
+updates:
+  # Root library module
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: weekly
+
+  # Examples module (separate go.mod)
+  - package-ecosystem: gomod
+    directory: /examples/ietf
+    schedule:
+      interval: weekly
+
+  # GitHub Actions
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
