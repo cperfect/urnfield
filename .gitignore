@@ -29,3 +29,5 @@ vendor/
 
 # AI-generated code review findings
 code-review-findings_*.md
+
+THOUGHTS.md
