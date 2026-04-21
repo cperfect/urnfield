@@ -41,3 +41,7 @@ jobs:
 
       - name: Test
         run: go test ./...
+
+      - name: Test examples
+        working-directory: examples/ietf
+        run: go test ./...
