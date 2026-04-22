@@ -3,7 +3,7 @@ module github.com/cperfect/urnfield/examples/ietf
 go 1.26
 
 require (
-	github.com/cperfect/urnfield v0.0.0
+	github.com/cperfect/urnfield v1.0.0
 	github.com/gobwas/glob v0.2.3
 	github.com/stretchr/testify v1.11.1
 )
