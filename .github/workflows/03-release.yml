@@ -1,0 +1,51 @@
+name: 03 Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    environment: release
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Read version from CHANGELOG.md
+        id: vars
+        run: |
+          VERSION=$(grep -m1 '^## \[' CHANGELOG.md | sed 's/## \[\([^]]*\)\].*/v\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          if git rev-parse --verify "refs/tags/$VERSION" >/dev/null 2>&1; then
+            echo "Tag $VERSION already exists — has this version already been released?"
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Extract release notes
+        if: steps.vars.outputs.skip == 'false'
+        run: |
+          awk '/^## \[/{if (found) exit; found=1; next} found{print}' CHANGELOG.md > release_notes.txt
+
+      - name: Create and push annotated tag
+        if: steps.vars.outputs.skip == 'false'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "${{ steps.vars.outputs.version }}" -m "Release ${{ steps.vars.outputs.version }}"
+          git push origin "${{ steps.vars.outputs.version }}"
+
+      - name: Create GitHub release
+        if: steps.vars.outputs.skip == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ steps.vars.outputs.version }}" \
+            --title "${{ steps.vars.outputs.version }}" \
+            --notes-file release_notes.txt
