@@ -133,6 +133,29 @@ func (u *Urn) IsWellFormed() error {
 	return nil
 }
 
+// Equivalent reports whether u and other denote the same resource.
+//
+// Per the urnfield specification §8, identity is borne only by the NID and NSS:
+// the NID is compared case-insensitively (ASCII case folding — NIDs are ASCII by
+// grammar) and the NSS element-for-element, case-sensitively. NssSlashDelimiter,
+// Query, Resolvers, and Fragment are not part of identity and are ignored. For
+// example, urn:ISBN:0451450523 ≡ urn:isbn:0451450523, and the same NSS expressed
+// with ":" or "/" delimiters is equivalent.
+func (u Urn) Equivalent(other Urn) bool {
+	if !strings.EqualFold(u.Nid, other.Nid) {
+		return false
+	}
+	if len(u.Nss) != len(other.Nss) {
+		return false
+	}
+	for i := range u.Nss {
+		if u.Nss[i] != other.Nss[i] {
+			return false
+		}
+	}
+	return true
+}
+
 // ToString converts the Urn to its string representation.
 // It is a synonym for Format; prefer Format for consistency.
 func (u Urn) ToString() (string, error) {

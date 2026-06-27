@@ -33,7 +33,7 @@ package ietf
 import (
 	"regexp"
 
-	"github.com/cperfect/urnfield"
+	"github.com/cperfect/urnfield/v2"
 	"github.com/gobwas/glob"
 )
 

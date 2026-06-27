@@ -5,10 +5,12 @@
 //
 // The core abstraction is NssElementValidator — a function with the signature:
 //
-//	func(nss []string) (remainder []string, next *NssSchema, err error)
+//	func(nss []string, delim string) (remainder []string, next *NssSchema, err error)
 //
 // Each validator processes the head of the NSS slice and returns the unconsumed
-// tail plus the NssSchema to use for the next element. Returning next == nil
+// tail plus the NssSchema to use for the next element. The delim argument is the
+// URN's active NSS delimiter, used only by glob matchers to rejoin the raw NSS
+// tail. Returning next == nil
 // signals that no further elements are expected. This is a continuation-passing
 // style: the schema structure is a linked list of validators built at definition
 // time, and validate() walks it recursively at validation time.
@@ -63,7 +65,15 @@ func (s *Schema) ValidateUrn(u Urn) error {
 	if s.Nid != u.Nid {
 		return fmt.Errorf("NID must be %s: got %s", s.Nid, u.Nid)
 	}
-	err := s.NssSchema.validate(u.Nss)
+	// The active NSS delimiter is threaded through validation so that glob
+	// matchers can rejoin the remaining elements into the raw NSS tail using the
+	// URN's own delimiter (per spec §10), faithfully reconstructing the original
+	// substring rather than always assuming ":".
+	delim := ":"
+	if u.NssSlashDelimiter {
+		delim = "/"
+	}
+	err := s.NssSchema.validate(u.Nss, delim)
 	if err != nil {
 		return err
 	}
@@ -72,25 +82,31 @@ func (s *Schema) ValidateUrn(u Urn) error {
 }
 
 // NssElementValidator is a function that validates one or more NSS elements.
-// It returns the remaining unprocessed elements and the NssSchema to use for
-// the next element, or a non-nil error if validation fails. When no further
-// elements are expected, next is nil and nssRemainder should be empty.
-type NssElementValidator func(nss []string) (nssRemainder []string, next *NssSchema, err error)
+// It receives the remaining elements and the URN's active NSS delimiter (":" or
+// "/"), and returns the remaining unprocessed elements and the NssSchema to use
+// for the next element, or a non-nil error if validation fails. When no further
+// elements are expected, next is nil and nssRemainder should be empty. The
+// delimiter is needed only by glob matchers, which rejoin the tail with it (per
+// spec §10); most validators ignore it.
+type NssElementValidator func(nss []string, delim string) (nssRemainder []string, next *NssSchema, err error)
 
 // GlobNssElementValidatorFunc returns an NssElementValidator that matches all
-// remaining NSS elements (joined with ":") against the given glob pattern.
-// This validator always terminates the chain — it consumes every remaining
-// element in one match, so no next NssSchema is accepted. This is intentional:
-// glob patterns are used for opaque or arbitrarily deep sub-namespaces (e.g.
-// the IETF "params" sub-namespace) where per-element structure is not defined.
-// For single-element pattern matching use RegexNssElementValidatorFunc instead.
+// remaining NSS elements against the given glob pattern. The elements are
+// rejoined with the URN's active NSS delimiter (":" or "/") to reconstruct the
+// raw NSS tail (per spec §10), so a "/"-delimited NSS is matched as it actually
+// appears rather than being coerced to ":". This validator always terminates the
+// chain — it consumes every remaining element in one match, so no next NssSchema
+// is accepted. This is intentional: glob patterns are used for opaque or
+// arbitrarily deep sub-namespaces (e.g. the IETF "params" sub-namespace) where
+// per-element structure is not defined. For single-element pattern matching use
+// RegexNssElementValidatorFunc instead.
 // See https://github.com/gobwas/glob for pattern syntax.
 func GlobNssElementValidatorFunc(glob glob.Glob) NssElementValidator {
-	return func(nss []string) ([]string, *NssSchema, error) {
+	return func(nss []string, delim string) ([]string, *NssSchema, error) {
 		if len(nss) == 0 {
 			return nil, nil, fmt.Errorf("expected element matching glob pattern but got none")
 		}
-		if !glob.Match(strings.Join(nss, ":")) {
+		if !glob.Match(strings.Join(nss, delim)) {
 			return nil, nil, fmt.Errorf("bad value for element: value %s should match glob pattern", nss)
 		}
 		return []string{}, nil, nil
@@ -102,7 +118,7 @@ func GlobNssElementValidatorFunc(glob glob.Glob) NssElementValidator {
 // pre-split elements — do not include ":" or "/" in the pattern, as these delimiters
 // are consumed by Parse before validation.
 func RegexNssElementValidatorFunc(pattern *regexp.Regexp, next *NssSchema) NssElementValidator {
-	return func(nss []string) ([]string, *NssSchema, error) {
+	return func(nss []string, _ string) ([]string, *NssSchema, error) {
 		if len(nss) == 0 {
 			return nil, nil, fmt.Errorf("expected element matching %s but got none", pattern.String())
 		}
@@ -117,7 +133,7 @@ func RegexNssElementValidatorFunc(pattern *regexp.Regexp, next *NssSchema) NssEl
 // NSS element to equal nssEquals exactly. The value operates on a single pre-split
 // element — do not include ":" or "/" in nssEquals.
 func EqualsNssElementValidatorFunc(nssEquals string, next *NssSchema) NssElementValidator {
-	return func(nss []string) ([]string, *NssSchema, error) {
+	return func(nss []string, _ string) ([]string, *NssSchema, error) {
 		if len(nss) == 0 {
 			return nil, nil, fmt.Errorf("expected element equal to %s but got none", nssEquals)
 		}
@@ -133,7 +149,7 @@ func EqualsNssElementValidatorFunc(nssEquals string, next *NssSchema) NssElement
 // Use this when each alternative is a fixed string (e.g. "rfc", "fyi", "std"). For alternatives
 // that require their own sub-validation logic, use ComplexOrNssElementValidatorFunc instead.
 func SimpleOrNssElementValidatorFunc(alternatives map[string]*NssSchema) NssElementValidator {
-	return func(nss []string) ([]string, *NssSchema, error) {
+	return func(nss []string, _ string) ([]string, *NssSchema, error) {
 		if len(nss) == 0 {
 			return nil, nil, fmt.Errorf("expected one of %v but got none", alternatives)
 		}
@@ -150,12 +166,12 @@ func SimpleOrNssElementValidatorFunc(alternatives map[string]*NssSchema) NssElem
 // (e.g. "rfc" followed by digits, vs "params" followed by an opaque glob). For simple
 // fixed-string branching use SimpleOrNssElementValidatorFunc instead.
 func ComplexOrNssElementValidatorFunc(alternatives []*NssSchema) NssElementValidator {
-	return func(nss []string) ([]string, *NssSchema, error) {
+	return func(nss []string, delim string) ([]string, *NssSchema, error) {
 		if len(nss) == 0 {
 			return nil, nil, fmt.Errorf("expected one of %v but got none", alternatives)
 		}
 		for _, schema := range alternatives {
-			nss, next, err := schema.ElementValidator(nss)
+			nss, next, err := schema.ElementValidator(nss, delim)
 			if err != nil {
 				continue
 			}
@@ -171,13 +187,14 @@ type NssSchema struct {
 	ElementValidator NssElementValidator
 }
 
-// recursively validate the nss elements
-func (ns *NssSchema) validate(nss []string) error {
+// recursively validate the nss elements. delim is the URN's active NSS delimiter,
+// threaded through for glob matchers (see GlobNssElementValidatorFunc).
+func (ns *NssSchema) validate(nss []string, delim string) error {
 	// len(nil) == 0, so this covers both nil and empty slices
 	if len(nss) == 0 {
 		return fmt.Errorf("no value for nss element %s", ns.Description)
 	}
-	nss, next, err := ns.ElementValidator(nss)
+	nss, next, err := ns.ElementValidator(nss, delim)
 	if err != nil {
 		return fmt.Errorf("invalid value for element %s: %s", ns.Description, err)
 	} else if next == nil {
@@ -190,5 +207,5 @@ func (ns *NssSchema) validate(nss []string) error {
 	if len(nss) < 1 {
 		return errors.New("not enough nss elements")
 	}
-	return next.validate(nss)
+	return next.validate(nss, delim)
 }

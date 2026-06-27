@@ -1,0 +1,3 @@
+[submodule "submodules/urnfield-spec"]
+	path = submodules/urnfield-spec
+	url = git@github.com:cperfect/urnfield-spec.git
