@@ -15,7 +15,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/cperfect/urnfield"
+	"github.com/cperfect/urnfield/v2"
 	"github.com/gobwas/glob"
 	"gopkg.in/yaml.v3"
 )

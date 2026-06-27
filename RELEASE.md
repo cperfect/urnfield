@@ -73,7 +73,7 @@ The prepare workflow updates the `require` version in `examples/ietf/go.mod` but
 
 ```bash
 # in examples/ietf/go.mod, remove the line:
-replace github.com/cperfect/urnfield => ../..
+replace github.com/cperfect/urnfield/v2 => ../..
 
 cd examples/ietf && go mod tidy
 ```
@@ -83,7 +83,13 @@ Commit directly to `main`.
 To confirm the module is available via the proxy before doing this:
 
 ```bash
-GOPROXY=https://proxy.golang.org go get github.com/cperfect/urnfield@vX.Y.Z
+GOPROXY=https://proxy.golang.org go get github.com/cperfect/urnfield/v2@vX.Y.Z
 ```
 
-If the proxy hasn't indexed it yet, visiting `https://pkg.go.dev/github.com/cperfect/urnfield@vX.Y.Z` will trigger indexing.
+If the proxy hasn't indexed it yet, visiting `https://pkg.go.dev/github.com/cperfect/urnfield/v2@vX.Y.Z` will trigger indexing.
+
+> **Major versions (v2+).** Go's semantic import versioning requires the module
+> path to carry the major-version suffix (`github.com/cperfect/urnfield/v2`). When
+> cutting a new major, update the `module` line in `go.mod`, every import of the
+> library, and the `require`/`replace` paths in `examples/ietf/go.mod` to the new
+> `/vN` suffix before tagging.

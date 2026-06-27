@@ -1,4 +1,4 @@
-module github.com/cperfect/urnfield
+module github.com/cperfect/urnfield/v2
 
 go 1.26
 

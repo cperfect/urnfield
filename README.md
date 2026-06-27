@@ -27,6 +27,19 @@ urn:payments:account:au:123456:78901234?+resolve=https://api.example.com?=curren
 ```
 
 ---
+## Installation
+
+```bash
+go get github.com/cperfect/urnfield/v2
+```
+
+```go
+import "github.com/cperfect/urnfield/v2" // imported as package "urnfield"
+```
+
+> The module path carries the `/v2` major-version suffix (Go semantic import
+> versioning); the package name is still `urnfield`.
+
 ## Usage
 
 > The intent is that once a URN string is created and set it is immutable (except possibly the resolvers component).

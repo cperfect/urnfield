@@ -3,7 +3,7 @@ module github.com/cperfect/urnfield/examples/ietf
 go 1.26
 
 require (
-	github.com/cperfect/urnfield v1.0.0
+	github.com/cperfect/urnfield/v2 v2.0.0
 	github.com/gobwas/glob v0.2.3
 	github.com/stretchr/testify v1.11.1
 )
@@ -16,4 +16,4 @@ require (
 
 // replace points at the local library source during development.
 // Remove and pin to a tagged release version once the library is published.
-replace github.com/cperfect/urnfield => ../..
+replace github.com/cperfect/urnfield/v2 => ../..

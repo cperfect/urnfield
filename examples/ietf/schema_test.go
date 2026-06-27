@@ -3,7 +3,7 @@ package ietf
 import (
 	"testing"
 
-	"github.com/cperfect/urnfield"
+	"github.com/cperfect/urnfield/v2"
 	"github.com/stretchr/testify/assert"
 )
 

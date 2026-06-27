@@ -76,7 +76,7 @@ jobs:
 
       - name: Update examples/ietf module version
         run: |
-          sed -i "s|github.com/cperfect/urnfield v[^ ]*|github.com/cperfect/urnfield ${{ inputs.version }}|" examples/ietf/go.mod
+          sed -i "s|github.com/cperfect/urnfield/v2 v[^ ]*|github.com/cperfect/urnfield/v2 ${{ inputs.version }}|" examples/ietf/go.mod
 
       - name: Tidy examples module
         working-directory: examples/ietf
