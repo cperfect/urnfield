@@ -5,8 +5,7 @@
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
 	"image": "mcr.microsoft.com/devcontainers/go:2-1.26-trixie",
 	"features": {
-		"ghcr.io/devcontainers-extra/features/claude-code:2": {},
-		"ghcr.io/siri404/devcontainer-ai-features/claude-code:1": {}
+		"ghcr.io/devcontainers-extra/features/claude-code:2": {}
 	}
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
