@@ -2,6 +2,36 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+This release aligns the library with the [`urnfield`
+specification](https://github.com/cperfect/urnfield-spec) (vendored as a git
+submodule under `submodules/`) and adds a conformance runner driven by the spec's
+test vectors. See [CONTRIBUTING.md](./CONTRIBUTING.md) for the spec-first workflow.
+
+> **BREAKING:** `NssElementValidator` now takes the URN's active NSS delimiter as
+> a second argument (`func(nss []string, delim string) ...`). Code using the
+> built-in validator factories (`RegexNssElementValidatorFunc`,
+> `GlobNssElementValidatorFunc`, etc.) is unaffected; only code that implements
+> the validator function type directly needs updating.
+
+### Bug Fixes
+
+- **schema**: Glob matchers rejoin the remaining NSS elements with the URN's own
+  delimiter (`:` or `/`) to match the raw NSS tail, per spec §10, instead of
+  always using `:`.
+
+### Features
+
+- **urnfield**: Add `Urn.Equivalent` for spec §8 equivalence (NID
+  case-insensitive, NSS case-sensitive and element-wise; query/resolvers/fragment
+  and delimiter ignored).
+
+### Tests
+
+- **conformance**: Add a runner that drives the public API against the spec's
+  language-neutral conformance vectors (parse, format, validate, equals).
+
 ## [1.0.0] - 2026-04-22
 ### Bug Fixes
 

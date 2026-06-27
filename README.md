@@ -53,6 +53,18 @@ if err != nil {
 fmt.Println(s) // "urn:ietf:rfc:2648"
 ```
 
+### Comparing URNs
+
+Identity is borne only by the NID and NSS. `Equivalent` compares the NID
+case-insensitively and the NSS case-sensitively element-for-element; the
+delimiter, query, resolvers, and fragment are ignored.
+
+```go
+a, _ := urnfield.Parse("urn:ISBN:0451450523")
+b, _ := urnfield.Parse("urn:isbn:0451450523?=x=y#frag")
+a.Equivalent(b) // true — NID case-insensitive, components ignored
+```
+
 ### Defining a schema
 
 Schemas validate the structure of a namespace's NSS using a chain of element validators. The IETF namespace ([RFC 2648](https://tools.ietf.org/html/rfc2648)) accepts several sub-namespaces (`rfc`, `fyi`, `std`, `bcp`, `id`, `params`) plus any other string:
@@ -100,6 +112,18 @@ err   = IETFSchema.ValidateUrn(u)                  // nil
 ```
 
 A full working implementation of the IETF schema is available in [`examples/ietf/`](examples/ietf/).
+
+## Specification & conformance
+
+`urnfield` is the Go reference implementation of the technology-agnostic
+[`urnfield` specification](https://github.com/cperfect/urnfield-spec). The spec
+and its language-neutral **conformance vectors** are vendored as a git submodule
+under [`submodules/urnfield-spec`](submodules/urnfield-spec) and exercised by
+`conformance_test.go`, so the library's parse/format/validate/equals behaviour is
+continuously checked against the spec it pins. After cloning, run
+`git submodule update --init --recursive` so the conformance tests can find their
+fixtures. Behavioural contributions are spec-first — see
+[CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Use cases
 
