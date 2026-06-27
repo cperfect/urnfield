@@ -1,7 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "Bash(gofmt:*)"
+      "Bash(gofmt:*)",
+      "Bash(go doc *)",
+      "Bash(go mod *)",
+      "Bash(go test *)",
+      "Bash(go vet *)",
+      "Bash(git --no-pager diff go.mod)",
+      "Bash(git submodule update:*)"
     ]
   }
 }
