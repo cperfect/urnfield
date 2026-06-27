@@ -14,6 +14,10 @@ jobs:
     if: github.ref != 'refs/heads/main'
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      # Pass the dispatch input through the environment so it is never
+      # interpolated into shell source (avoids script injection); reference it
+      # as the quoted "$VERSION" in run steps.
+      VERSION: ${{ inputs.version }}
     permissions:
       contents: write
     steps:
@@ -28,15 +32,15 @@ jobs:
 
       - name: Validate version format
         run: |
-          if ! echo "${{ inputs.version }}" | grep -qE '^v2\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$'; then
-            echo "Version '${{ inputs.version }}' is not valid — expected a v2 release matching the /v2 module path, e.g. v2.0.0"
+          if ! echo "$VERSION" | grep -qE '^v2\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$'; then
+            echo "Version '$VERSION' is not valid — expected a v2 release matching the /v2 module path, e.g. v2.0.0"
             exit 1
           fi
 
       - name: Check tag does not already exist
         run: |
-          if git ls-remote --tags origin "refs/tags/${{ inputs.version }}" | grep -q "${{ inputs.version }}"; then
-            echo "Tag ${{ inputs.version }} already exists"
+          if git ls-remote --tags origin "refs/tags/$VERSION" | grep -q "$VERSION"; then
+            echo "Tag $VERSION already exists"
             exit 1
           fi
 
@@ -76,7 +80,7 @@ jobs:
 
       - name: Update examples/ietf module version
         run: |
-          sed -i "s|github.com/cperfect/urnfield/v2 v[^ ]*|github.com/cperfect/urnfield/v2 ${{ inputs.version }}|" examples/ietf/go.mod
+          sed -i "s|github.com/cperfect/urnfield/v2 v[^ ]*|github.com/cperfect/urnfield/v2 $VERSION|" examples/ietf/go.mod
 
       - name: Tidy examples module
         working-directory: examples/ietf
@@ -87,5 +91,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add CHANGELOG.md examples/ietf/go.mod examples/ietf/go.sum
-          git diff --cached --quiet || git commit -m "chore(release): prepare ${{ inputs.version }}"
+          git diff --cached --quiet || git commit -m "chore(release): prepare $VERSION"
           git push origin HEAD
