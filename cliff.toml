@@ -16,7 +16,9 @@ body = """
 ### {{ group | upper_first }}
 
 {% for commit in commits %}\
-- {% if commit.scope %}**{{ commit.scope }}**: {% endif %}{{ commit.message | upper_first }}
+- {% if commit.breaking %}**[BREAKING]** {% endif %}{% if commit.scope %}**{{ commit.scope }}**: {% endif %}{{ commit.message | upper_first }}
+{% if commit.breaking %}  {{ commit.breaking_description | trim | replace(from="\n", to=" ") }}
+{% endif %}\
 {% endfor %}\
 {% endfor %}\
 """
@@ -30,6 +32,7 @@ split_commits = false
 commit_parsers = [
   { message = "^feat", group = "Features" },
   { message = "^fix", group = "Bug Fixes" },
+  { message = "^ci", group = "Continuous Integration" },
   { message = "^docs", group = "Documentation" },
   { message = "^test", group = "Tests" },
   { message = "^refactor", group = "Refactoring" },
